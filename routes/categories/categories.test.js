@@ -7,7 +7,7 @@ const {
 } = require("../../helpers/testFunctions");
 const DbCategory = require("../../models/category");
 
-beforeAll(async() => {
+beforeAll(async () => {
   await DbCategory.deleteMany({});
 });
 
@@ -24,6 +24,7 @@ describe("Create new category", () => {
         title: "Alimentos",
         icon: "fa-solid fa-test",
         limit: "15000",
+        color: "#aabbcc",
         description: "",
       })
       .then((res) => {
@@ -37,6 +38,7 @@ describe("Create new category", () => {
         title: "A", //incorrect name
         icon: "fa-solid fa-test",
         limit: "15000",
+        color: "#aabbcc",
         description: "",
       })
       .then((res) => {
@@ -50,6 +52,7 @@ describe("Create new category", () => {
         title: "Alimentos",
         icon: "f", //incorrect icon
         limit: "15000",
+        color: "#aabbcc",
         description: "",
       })
       .then((res) => {
@@ -63,6 +66,34 @@ describe("Create new category", () => {
         title: "Alimentos",
         icon: "fa-solid fa-test",
         limit: "150a", //incorrect limit
+        color: "#aabbcc",
+        description: "",
+      })
+      .then((res) => {
+        expect(res.status).toBe(401);
+      });
+
+    await api
+      .post("/api/category")
+      .send({
+        dni: randomNumber(8),
+        title: "Alimentos",
+        icon: "fa-solid fa-test",
+        limit: "150a",
+        color: "#a", //incorrect color
+        description: "",
+      })
+      .then((res) => {
+        expect(res.status).toBe(401);
+      });
+
+    await api
+      .post("/api/category")
+      .send({
+        dni: randomNumber(8),
+        title: "Alimentos",
+        icon: "fa-solid fa-test", // missing limit
+        color: "#aabbcc",
         description: "",
       })
       .then((res) => {
@@ -75,9 +106,10 @@ describe("Create new category", () => {
       .post("/api/category")
       .send({
         dni: "12345678",
-        title: randomString(5),
+        title: "Alimentos",
         icon: "fa-solid fa-test",
         limit: "15000",
+        color: "#aabbcc",
         description: "Hola",
       })
       .then((res) => {
@@ -91,6 +123,7 @@ describe("Create new category", () => {
         title: randomString(10),
         icon: "fa-solid",
         limit: "15000",
+        color: "#aabbdd",
         description: "", //empty description
       })
       .then((res) => {
@@ -99,32 +132,13 @@ describe("Create new category", () => {
   });
 });
 
-describe("Get categories",()=>{
-  test("Get category document", async () => {
-    await api
-      .get("/api/categories/12345678")
-      .then((res) => {
-        expect(res.status).toBe(200);
-        expect(res.body.dni).toBe("12345678"); // antes se agrega el documento
-      });
-  });
-
-  test("Get invalid category document", async () => {
-    await api
-      .get("/api/categories/912")
-      .then((res) => {
-        expect(res.status).toBe(200);
-        expect(res.body).toBe(null); 
-      });
-  });
-
-  test("Get categories from a document", async () => {
-    await api
-      .get("/api/categories/12345678")
-      .then((res) => {
-        expect(res.status).toBe(200);
-        expect(res.body.categories.length).toBe(1); // antes se agrega una categoria
-      });
+describe("Get categories", () => {
+  test("Get category document and categories", async () => {
+    await api.get("/api/categories").then((res) => {
+      expect(res.status).toBe(200);
+      expect(res.body.dni).toBe("12345678");
+      expect(res.body.categories.length).toBe(1);
+    });
   });
 });
 
@@ -139,6 +153,7 @@ describe("Edit documents", () => {
         title: "categoria 2",
         icon: "fa-solid fa-test2",
         limit: "75000",
+        color: "#aabbcc",
         description: "",
       })
       .then((res) => {
@@ -160,17 +175,49 @@ describe("Edit documents", () => {
         expect(res.status).toBe(200);
       });
 
+    await api.get(`/api/categories`).then((res) => {
+      let categoryIndex = res.body.categories.findIndex(
+        (category) => category.id === categoryId
+      );
+
+      expect(res.status).toBe(200);
+      expect(res.body.categories[categoryIndex].spent).toBe(100);
+    });
+  });
+});
+
+describe("Delete documents", () => {
+  test("Delete category", async () => {
     await api
-      .get(`/api/categories/12345678`)
+      .delete(`/api/category/${categoryId}`)
+      .send({
+        dni: "12345678",
+      })
       .then((res) => {
-        let categoryIndex = res.body.categories.findIndex(
-          (category) => category.id === categoryId
-        );
-
-        //console.log(res.body.categories, categoryId, categoryIndex);
-
         expect(res.status).toBe(200);
-        expect(res.body.categories[categoryIndex].spent).toBe(100);
       });
+
+    await api.get(`/api/categories`).then((res) => {
+      expect(res.status).toBe(200);
+      expect(res.body.categories.length).toBe(1);
+    });
+  });
+});
+
+describe("New period actions", () => {
+  test("Reset spent attribute in all categories", async () => {
+    await api
+      .put("/api/categories/reset")
+      .send({
+        dni: "12345678",
+      })
+      .then((res) => {
+        expect(res.status).toBe(200);
+      });
+
+    await api.get("/api/categories").then((res) => {
+      expect(res.status).toBe(200);
+      expect(res.body.categories[0].spent).toBe(0);
+    });
   });
 });

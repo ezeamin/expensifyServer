@@ -15,6 +15,8 @@ function validar(datos) {
         }
         break;
       case "title":
+      case "accountType":
+      case "color":
         if (valor.length > 20 || valor.length < 2) {
           return false;
         }

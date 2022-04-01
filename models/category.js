@@ -18,7 +18,12 @@ const categorySchema = new Schema({
   spent: {
     type: Number,
   },
-  description: String,
+  color: {
+    type: String,
+  },
+  description: {
+    type: String,
+  },
 });
 
 const userCategorySchema = new Schema({

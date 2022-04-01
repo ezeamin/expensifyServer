@@ -9,6 +9,7 @@ const cors = require("cors");
 const app = express();
 const routesAuth = require("./routes/auth/auth");
 const routesCategories = require("./routes/categories/categories");
+const routesAccounts = require("./routes/accounts/accounts");
 require("./database/database");
 require("./passport/auth-login");
 
@@ -36,6 +37,7 @@ app.use(passport.session());
 //routes
 app.use(routesAuth);
 app.use(routesCategories);
+app.use(routesAccounts);
 
 /*app.route("*").get((req, res) => {
   res.sendFile(__dirname + "/public/index.html");
