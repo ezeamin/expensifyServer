@@ -10,6 +10,9 @@ const app = express();
 const routesAuth = require("./routes/auth/auth");
 const routesCategories = require("./routes/categories/categories");
 const routesAccounts = require("./routes/accounts/accounts");
+/*const routesExpenses = require("./routes/expenses/expenses");
+const routesIncomes = require("./routes/incomes/incomes");
+const routesTransfers = require("./routes/transfers/transfers");*/
 require("./database/database");
 require("./passport/auth-login");
 

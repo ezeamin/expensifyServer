@@ -10,13 +10,16 @@ function validar(datos) {
         }
         break;
       case "name":
+      case "accountType":
         if (!validateString(valor) || valor.length > 20 || valor.length < 2) {
           return false;
         }
         break;
       case "title":
-      case "accountType":
       case "color":
+      case "accountColor":
+      case "originAccountColor":
+      case "destinationAccountColor":
         if (valor.length > 20 || valor.length < 2) {
           return false;
         }
@@ -54,7 +57,7 @@ function validar(datos) {
       case "originAccount":
       case "destinationAccount":
       case "category":
-        if (valor === "0") {
+        if (valor === "0") { //prueba al pedo con los nuevos select de mui
           return false;
         }
         break;
