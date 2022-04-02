@@ -5,6 +5,8 @@ const morgan = require("morgan");
 const passport = require("passport");
 const session = require("express-session");
 const cors = require("cors");
+const MongoStore = require('connect-mongo');
+const { mongodb } = require("./database/keys");
 
 const app = express();
 
@@ -35,6 +37,7 @@ app.use(
     secret: process.env.SECRET_KEY,
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({ mongoUrl: mongodb.URI }),
   })
 );
 app.use(passport.initialize());

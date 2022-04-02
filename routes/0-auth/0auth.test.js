@@ -155,6 +155,7 @@ describe("Sign in", () => {
       .send({
         dni: "12345678",
         password: "123456aA",
+        rememberMe: false,
       })
       .then((res) => {
         expect(res.status).toBe(200);

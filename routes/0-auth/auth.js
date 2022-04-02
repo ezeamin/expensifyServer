@@ -6,12 +6,19 @@ const validar = require("../../helpers/validar");
 const isAuthenticated = require("../../helpers/isAuthenticated");
 const initiateUser = require("../../helpers/db/initiate");
 
+const DbUsers = require("../../models/user");
+
 router.post("/api/signup", (req, res) => {
   if (!validar(req.body)) {
     res.status(401).json({
       ok: false,
       message: "Datos inválidos",
     });
+    return;
+  }
+
+  if(req.isAuthenticated()) {
+    res.status(401).json({message: "Usuario ya autenticado"});
     return;
   }
 
@@ -22,9 +29,9 @@ router.post("/api/signup", (req, res) => {
     if (!user) {
       return res.status(401).json(info);
     }
-    
+
     await initiateUser(req.body.dni);
-    
+
     return res.sendStatus(200);
   })(req, res);
 });
@@ -38,22 +45,23 @@ router.post("/api/signin", (req, res) => {
     return;
   }
 
-  passport.authenticate("local-login", (err,user)=>{
-    if(err){
+  if(req.isAuthenticated()) {
+    res.status(401).json({message: "Usuario ya autenticado"});
+    return;
+  }
+
+  passport.authenticate("local-login", (err, user) => {
+    if (err) {
       return res.status(401).json(err);
     }
-    req.logIn(user,()=>{
-      return res.sendStatus(200);
+    req.logIn(user, async () => {
+      res.sendStatus(200);
+
+      const user = await DbUsers.findOne({dni: req.body.dni});
+      user.recCode = req.session.passport.user; //cambio el codigo de recuperacion
+      await user.save();
     });
   })(req, res);
-});
-
-router.get("/api/error", (req, res) => {
-  res.sendStatus(401);
-});
-
-router.get("/api/success", (req, res) => {
-  res.status(200).json({ message: "Success" });
 });
 
 router.delete("/api/logout", (req, res) => {

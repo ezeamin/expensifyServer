@@ -10,9 +10,9 @@ passport.use(
     {
       usernameField: "dni",
       passwordField: "password",
-      passReqToCallback: false,
+      passReqToCallback: true,
     },
-    async (dni, password, done) => {
+    async (req,dni, password, done) => {
       const user = await User.findOne({ dni: dni });
 
       if (!user) {
@@ -21,6 +21,13 @@ passport.use(
       if (!user.comparePassword(password, user.password)) {
         return done({ message: "Contraseña incorrecta" }, false);
       }
+
+      if (req.body.rememberMe) {
+        req.session.cookie.originalMaxAge = 60 * 60 * 24 * 7; // Expires in 7 days
+      } else{
+        req.session.cookie.originalMaxAge = false; // Expires when browser is closed
+      }
+
       return done(null, user);
     }
   )
