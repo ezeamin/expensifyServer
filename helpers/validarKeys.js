@@ -5,6 +5,8 @@ const validarKeys = (type, obj) => {
         newTransfer: ["price", "description", "originAccountId", "destinationAccountId"],
         newIncome: ["title", "price", "description", "accountId"],
         newExpense: ["title", "categoryId", "price", "description", "accountId"],
+        newUserDebt: ["lenderName", "price", "description", "destinationAccountId"],
+        newOtherDebt: ["debtorName", "price", "description", "originAccountId"],
     };
     
     if (keys[type].every((key) => Object.keys(obj).includes(key))) {

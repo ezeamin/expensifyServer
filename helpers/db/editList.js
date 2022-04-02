@@ -10,12 +10,14 @@ const switchFunction = (type) => {
       return { db: require("../../models/income"), listName: "incomes" };
     case "transfer":
       return { db: require("../../models/transfer"), listName: "transfers" };
+    case "debt":
+      return { db: require("../../models/debt"), listName: "debts" };
     default:
       return null;
   }
 };
 
-const editList = async (type, dni, id, newData,res) => {
+const editList = async (type, dni, id, newData, res) => {
   const { db, listName } = switchFunction(type);
 
   db.findOne(
@@ -27,7 +29,7 @@ const editList = async (type, dni, id, newData,res) => {
         res.status(401).json(err);
       }
 
-      if(!info){
+      if (!info) {
         res.sendStatus(404);
         return;
       }
@@ -38,7 +40,7 @@ const editList = async (type, dni, id, newData,res) => {
 
       await info.save((err) => {
         if (err) {
-            res.status(401).json(err);
+          res.status(401).json(err);
         }
 
         res.status(200).json(info);

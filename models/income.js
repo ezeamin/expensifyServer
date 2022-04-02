@@ -2,9 +2,7 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const incomeSchema = new Schema({
-  id: {
-    type: String,
-  },
+  id: String,
   title: String,
   date: Date,
   price: Number,

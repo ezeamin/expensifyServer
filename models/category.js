@@ -2,27 +2,13 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const categorySchema = new Schema({
-  id: {
-    type: String,
-  },
-  title: {
-    type: String,
-  },
-  icon: {
-    type: String,
-  },
-  limit: {
-    type: Number,
-  },
-  spent: {
-    type: Number,
-  },
-  color: {
-    type: String,
-  },
-  description: {
-    type: String,
-  },
+  id: String,
+  title: String,
+  icon: String,
+  limit: Number,
+  spent: Number,
+  color: String,
+  description: String,
 });
 
 const userCategorySchema = new Schema({

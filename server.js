@@ -7,12 +7,15 @@ const session = require("express-session");
 const cors = require("cors");
 
 const app = express();
+
 const routesAuth = require("./routes/0-auth/auth");
 const routesCategories = require("./routes/categories/categories");
 const routesAccounts = require("./routes/accounts/accounts");
 const routesExpenses = require("./routes/expenses/expenses");
 const routesIncomes = require("./routes/incomes/incomes");
 const routesTransfers = require("./routes/transfers/transfers");
+const routesDebts = require("./routes/debts/debts");
+
 require("./database/database");
 require("./passport/auth-login");
 
@@ -44,6 +47,7 @@ app.use(routesAccounts);
 app.use(routesExpenses);
 app.use(routesIncomes);
 app.use(routesTransfers);
+app.use(routesDebts);
 
 /*app.route("*").get((req, res) => {
   res.sendFile(__dirname + "/public/index.html");

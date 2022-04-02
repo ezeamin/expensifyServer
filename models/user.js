@@ -21,6 +21,7 @@ const userSchema = new Schema({
     type: String,
     unique: true,
     required: true,
+    maxlength: 8,
   },
   recCode: {
     type: String,

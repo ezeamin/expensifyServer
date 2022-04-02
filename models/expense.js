@@ -2,9 +2,7 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const expenseSchema = new Schema({
-  id: {
-    type: String,
-  },
+  id: String,
   title: String,
   categoryId: String,
   accountId: String,

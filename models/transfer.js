@@ -2,9 +2,7 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const transferSchema = new Schema({
-  id: {
-    type: String,
-  },
+  id: String,
   date: Date,
   time: String,
   price: Number,
