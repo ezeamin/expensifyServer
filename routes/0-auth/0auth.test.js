@@ -2,21 +2,40 @@
 const mongoose = require("mongoose");
 const {
   api,
-  randomNumber,
-  randomEmail,
 } = require("../../helpers/testFunctions");
+
+beforeAll(async () => {
+  //drop database
+  await mongoose.connection.dropDatabase();
+});
 
 afterAll(() => {
   mongoose.connection.close();
 });
 
-describe.skip("Sign up", () => {
+jest.setTimeout(10000);
+
+describe("Sign up", () => {
+  test("Valid data sign up", async () => {
+    await api
+      .post("/api/signup")
+      .send({
+        dni: "12345678",
+        password: "123456aA",
+        email: "ezequielamin@outlook.com",
+        name: "Eze",
+      })
+      .then((res) => {
+        expect(res.status).toBe(200);
+      });
+  });
+
   test("Invalid data sign up", async () => {
     await api
       .post("/api/signup")
       .send({
         name: "A", //incorrect name
-        dni: "12345678",
+        dni: "11245678",
         email: "eze@gmail.com",
         password: "123456aA",
       })
@@ -40,7 +59,7 @@ describe.skip("Sign up", () => {
       .post("/api/signup")
       .send({
         name: "Eze",
-        dni: "12345678",
+        dni: "12349998",
         email: "eze@gmail", //incorrect email
         password: "123456aA",
       })
@@ -52,7 +71,7 @@ describe.skip("Sign up", () => {
       .post("/api/signup")
       .send({
         name: "Eze",
-        dni: "12345678",
+        dni: "12345118",
         email: "eze@gmail.com",
         password: "1234", //incorrect password
       })
@@ -64,7 +83,7 @@ describe.skip("Sign up", () => {
       .post("/api/signup")
       .send({
         name: "Eze",
-        dni: "43706393", //dni en uso
+        dni: "12345678", //dni en uso
         email: "eze@gmail.com",
         password: "123456aA",
       })
@@ -85,28 +104,9 @@ describe.skip("Sign up", () => {
       });
   });
 
-  test("Valid data sign up", async () => {
-    await api
-      .post("/api/signup")
-      .send({
-        dni: randomNumber(8),
-        password: "123456aA",
-        email: randomEmail(),
-        name: "Eze",
-      })
-      .then((res) => {
-        expect(res.status).toBe(200);
-      });
-  });
 });
 
-describe.skip("Sign in", () => {
-  let api;
-
-  beforeEach(() => {
-    api = supertest(app);
-  });
-
+describe("Sign in", () => {
   test("Invalid data sign in", async () => {
     await api
       .post("/api/signin")
@@ -141,7 +141,7 @@ describe.skip("Sign in", () => {
     await api
       .post("/api/signin")
       .send({
-        dni: "43706393",
+        dni: "12345678",
         password: "123456aB", //incorrect password
       })
       .then((res) => {
@@ -153,7 +153,7 @@ describe.skip("Sign in", () => {
     await api
       .post("/api/signin")
       .send({
-        dni: "43706393",
+        dni: "12345678",
         password: "123456aA",
       })
       .then((res) => {

@@ -4,6 +4,7 @@ const router = express.Router();
 
 const validar = require("../../helpers/validar");
 const isAuthenticated = require("../../helpers/isAuthenticated");
+const initiateUser = require("../../helpers/db/initiate");
 
 router.post("/api/signup", (req, res) => {
   if (!validar(req.body)) {
@@ -14,14 +15,17 @@ router.post("/api/signup", (req, res) => {
     return;
   }
 
-  passport.authenticate("local-signup", (err, user, info) => {
+  passport.authenticate("local-signup", async (err, user, info) => {
     if (err) {
       return res.status(500).json(err);
     }
     if (!user) {
       return res.status(401).json(info);
     }
-    return res.status(200).json(user);
+    
+    await initiateUser(req.body.dni);
+    
+    return res.sendStatus(200);
   })(req, res);
 });
 

@@ -48,7 +48,7 @@ function validar(datos) {
         }
         break;
       case "price": {
-        if (!/^[0-9]{1,6}$/i.test(valor) || Number.parseFloat(valor) === 0) {
+        if (!/^[0-9]{1,7}$/i.test(valor) || Number.parseFloat(valor) === 0) {
           return false;
         }
         break;

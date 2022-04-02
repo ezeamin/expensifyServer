@@ -16,10 +16,10 @@ passport.use(
       const user = await User.findOne({ dni: dni });
 
       if (!user) {
-        return done({ message: "DNI no registrado"}, false);
+        return done({ message: "DNI no registrado" }, false);
       }
       if (!user.comparePassword(password, user.password)) {
-        return done({ message: "Contraseña incorrecta"}, false);
+        return done({ message: "Contraseña incorrecta" }, false);
       }
       return done(null, user);
     }
@@ -40,13 +40,11 @@ passport.use(
 
       if (exists) {
         return done(null, false, {
-          message: "Email en uso.",
-          code: 401,
+          message: "Email en uso."
         });
       } else if (existsDni) {
         return done(null, false, {
-          message: "DNI en uso.",
-          code: 401,
+          message: "DNI en uso."
         });
       } else {
         try {
@@ -62,7 +60,7 @@ passport.use(
           user.password = user.encryptPassword(password);
 
           await user.save();
-          return done(null, { message: "Registro exitoso."});
+          return done(null, user);
         } catch (error) {
           return done(null, false, {
             message: "Error al registrar.",

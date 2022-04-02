@@ -8,49 +8,18 @@ const generarCodigo = require("../../helpers/generarCodigo");
 const stringify = require("../../helpers/stringify");
 
 const DbAccounts = require("../../models/account");
+const editList = require("../../helpers/db/editList");
+const resetSpent = require("../../helpers/db/resetSpent");
+
+const noBalanceAccountTypes = ["Credito"];
 
 router.get("/api/accounts", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
 
-  const accounts = await DbAccounts.find({ dni });
+  const accounts = await DbAccounts.findOne({ dni });
   res.json(accounts);
 });
 
-router.post("/api/account", isAuthenticated, (req, res) => {
-  if (!validar(req.body) || !validarKeys("newAccount", req.body)) {
-    res.status(401).json({
-      message: "Datos inválidos",
-    });
-    return;
-  }
-
-  const account = new DbAccounts({
-    dni: process.env.NODE_ENV === "test" ? req.body.dni : req.user.dni,
-    spent: 0,
-    accounts: [
-      {
-        id: generarCodigo(8),
-        title: stringify(req.body.title, false),
-        icon: req.body.icon,
-        color: req.body.color,
-        accountType: req.body.accountType,
-        balance: req.body.balance,
-        spent: 0,
-        description: req.body.description,
-      },
-    ],
-  });
-
-  account.save((err) => {
-    if (err) {
-      return res.status(401).json({
-        err,
-      });
-    }
-
-    res.status(200).json(account);
-  });
-});
 
 router.put("/api/account", isAuthenticated, (req, res) => {
   if (!validar(req.body) || !validarKeys("newAccount", req.body)) {
@@ -73,6 +42,7 @@ router.put("/api/account", isAuthenticated, (req, res) => {
           balance: req.body.balance,
           spent: 0,
           description: req.body.description,
+          noBalance: noBalanceAccountTypes.includes(req.body.accountType),
         },
       },
     },
@@ -97,64 +67,16 @@ router.put("/api/account/:id", isAuthenticated, (req, res) => {
     return;
   }
 
-  DbAccounts.findOne(
-    {
-      dni: process.env.NODE_ENV === "test" ? req.body.dni : req.user.dni,
-    },
-    (err, account) => {
-      if (err) {
-        return res.status(401).json({
-          err,
-        });
-      }
+  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
 
-      let accountPosition = account.accounts.findIndex(
-        (account) => account.id === req.params.id
-      );
-
-      account.accounts[accountPosition].set(req.body);
-
-      account.save((err) => {
-        if (err) {
-          return res.status(401).json({
-            err,
-          });
-        }
-
-        res.status(200).json(account);
-      });
-    }
-  );
+  editList("account", dni, req.params.id, req.body, res);
 });
 
 //reset all spent
 router.put("/api/accounts/reset", isAuthenticated, (req, res) => {
-    DbAccounts.findOne(
-        {
-        dni: process.env.NODE_ENV === "test" ? req.body.dni : req.user.dni,
-        },
-        (err, account) => {
-        if (err) {
-            return res.status(401).json({
-            err,
-            });
-        }
-    
-        account.accounts.forEach((account) => {
-            account.spent = 0;
-        });
-    
-        account.save((err) => {
-            if (err) {
-            return res.status(401).json({
-                err,
-            });
-            }
-    
-            res.status(200).json(account);
-        });
-        }
-    );
+  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+
+  resetSpent("account", dni, res);
 });
 
 router.delete("/api/account/:id", isAuthenticated, (req, res) => {

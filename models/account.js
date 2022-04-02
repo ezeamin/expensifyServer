@@ -4,7 +4,6 @@ const { Schema } = mongoose;
 const accountSchema = new Schema({
     id: {
         type: String,
-        unique: true,
     },
     title: String,
     icon: String,
@@ -13,6 +12,7 @@ const accountSchema = new Schema({
     balance: Number,
     spent: Number,
     description: String,
+    noBalance: Boolean,
 });
 
 const userAccountSchema = new Schema({

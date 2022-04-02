@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "jest": {
+    "verbose": true,
+    "testSequencer": "./testSequencer"
+  },
   "scripts": {
-    "test": "cross-env NODE_ENV=test jest --verbose",
+    "test": "cross-env NODE_ENV=test jest -i",
     "test:watch": "npm run test -- --watchAll",
     "dev": "cross-env NODE_ENV=development nodemon server.js",
     "start": "cross-env NODE_ENV=production node server.js",
@@ -20,15 +24,16 @@
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
     "express-session": "^1.17.2",
-    "jest": "^27.5.1",
     "mongoose": "^6.2.9",
     "morgan": "^1.10.0",
     "passport": "^0.5.2",
     "passport-local": "^1.0.0"
   },
   "devDependencies": {
+    "jest": "^27.5.1",
     "eslint": "^8.12.0",
     "nodemon": "^2.0.15",
-    "supertest": "^6.2.2"
+    "supertest": "^6.2.2",
+    "@jest/test-sequencer": "^27.5.1"
   }
 }

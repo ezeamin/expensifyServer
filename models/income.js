@@ -4,15 +4,12 @@ const { Schema } = mongoose;
 const incomeSchema = new Schema({
   id: {
     type: String,
-    unique: true,
   },
   title: String,
   date: Date,
-  time: String,
   price: Number,
   description: String,
-  account: String,
-  accountColor: String,
+  accountId: String,
 });
 
 const userIncomeSchema = new Schema({
