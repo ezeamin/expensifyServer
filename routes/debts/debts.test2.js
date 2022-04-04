@@ -215,6 +215,40 @@ describe("Get debts", () => {
   });
 });
 
+describe("Modify debt", () => {
+  test("Modify user debt", async () => {
+    const newData = {
+      dni: "12345678",
+      destinationAccountId: "AABBCC",
+    };
+
+    await api
+      .put(`/api/debt/user/${personUserId}/${debtUserId}`)
+      .send(newData)
+      .then((res) => {
+        expect(res.status).toBe(200);
+        expect(res.body.userDebts.length).toBe(2);
+        expect(res.body.userDebts[0].debts[1].destinationAccountId).toBe(newData.destinationAccountId);
+      });
+  });
+
+  test("Modify other debt", async () => {
+    const newData = {
+      dni: "12345678",
+      originAccountId: "AABBCC",
+    };
+
+    await api
+      .put(`/api/debt/other/${personOtherId}/${debtOtherId}`)
+      .send(newData)
+      .then((res) => {
+        expect(res.status).toBe(200);
+        expect(res.body.otherDebts.length).toBe(2);
+        expect(res.body.otherDebts[0].debts[1].originAccountId).toBe(newData.originAccountId);
+      });
+  });
+});
+
 describe("Delete debt", () => {
   test("Delete user debt", async () => {
     await api
@@ -255,5 +289,3 @@ describe("Delete debt", () => {
       });
   });
 });
-
-//edit debt (not creating a new debt)

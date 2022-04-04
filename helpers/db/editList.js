@@ -10,8 +10,8 @@ const switchFunction = (type) => {
       return { db: require("../../models/income"), listName: "incomes" };
     case "transfer":
       return { db: require("../../models/transfer"), listName: "transfers" };
-    case "debt":
-      return { db: require("../../models/debt"), listName: "debts" };
+    case "payment":
+      return { db: require("../../models/payment"), listName: "payments" };
     default:
       return null;
   }

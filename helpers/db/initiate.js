@@ -4,6 +4,7 @@ const DbTransfers = require("../../models/transfer");
 const DbExpenses = require("../../models/expense");
 const DbIncomes = require("../../models/income");
 const DbDebt = require("../../models/debt");
+const DbPayment = require("../../models/payment");
 
 //debts,payments
 
@@ -43,12 +44,18 @@ const initiateUser = async (dni) => {
     otherDebts: [],
   });
 
+  const payment = new DbPayment({
+    dni,
+    payments: [],
+  });
+
   await account.save();
   await category.save();
   await transfer.save();
   await expense.save();
   await income.save();
   await debt.save();
+  await payment.save();
 };
 
 module.exports = initiateUser;

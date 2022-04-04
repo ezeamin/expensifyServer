@@ -17,6 +17,7 @@ const routesExpenses = require("./routes/expenses/expenses");
 const routesIncomes = require("./routes/incomes/incomes");
 const routesTransfers = require("./routes/transfers/transfers");
 const routesDebts = require("./routes/debts/debts");
+const routesPayments = require("./routes/payments/payments");
 
 require("./database/database");
 require("./passport/auth-login");
@@ -51,6 +52,7 @@ app.use(routesExpenses);
 app.use(routesIncomes);
 app.use(routesTransfers);
 app.use(routesDebts);
+app.use(routesPayments);
 
 /*app.route("*").get((req, res) => {
   res.sendFile(__dirname + "/public/index.html");

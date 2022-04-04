@@ -1,4 +1,4 @@
-function validar(datos) {
+const validar = (datos) => {
   for (let i = 0; i < Object.keys(datos).length; i++) {
     let valor = Object.values(datos)[i];
 
@@ -61,6 +61,9 @@ function validar(datos) {
           return false;
         }
         break;
+      case "paymentDate":
+        if(!checkPayment(valor)) return false;
+        break;
       default:
         break;
     }
@@ -69,9 +72,26 @@ function validar(datos) {
   return true;
 }
 
-function validateString(str) {
+const validateString = (str) => {
   const re = /^[A-Za-z\sáéíóú]+$/;
   return re.test(str) ? true : false;
-}
+};
+
+const checkPayment = (date) => {
+  let dateSplit = date.split("-");
+  let year = dateSplit[0];
+  let month = dateSplit[1];
+  let day = dateSplit[2];
+
+  let currentDate = new Date();
+
+  if(year < currentDate.getFullYear() || month > 12 || day > 31 || month < 1 || day < 1) return false;
+
+  if(month < currentDate.getMonth() + 1 && year === currentDate.getFullYear()) return false;
+
+  if(day < currentDate.getDate() && year === currentDate.getFullYear() && month === currentDate.getMonth() + 1) return false;
+
+  return true;
+};
 
 module.exports = validar;

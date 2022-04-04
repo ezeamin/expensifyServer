@@ -119,19 +119,91 @@ router.put("/api/debt/:type", isAuthenticated, async (req, res) => {
   });
 });
 
-/*
-router.put("/api/debt/:id", isAuthenticated, async (req, res) => {
-  if (!validar(req.body)) {
-    res.status(401).json({
-      message: "Datos inválidos",
+router.put(
+  "/api/debt/:type/:personId/:debtId",
+  isAuthenticated,
+  async (req, res) => {
+    if (!validar(req.body)) {
+      res.status(401).json({
+        message: "Datos inválidos",
+      });
+      return;
+    }
+
+    const dni = process.env.NODE_ENV === "test" ? req.body.dni : req.user.dni;
+    const type = req.params.type;
+
+    DbDebts.findOne({ dni }, (err, document) => {
+      if (err) {
+        return res.status(401).json({
+          err,
+        });
+      }
+
+      let personIndex, debtIndex;
+
+      try {
+        if (type === "user") {
+          personIndex = document.userDebts
+            .map((x) => {
+              return x.id;
+            })
+            .indexOf(req.params.personId);
+          debtIndex = document.userDebts[personIndex].debts
+            .map((x) => {
+              return x.id;
+            })
+            .indexOf(req.params.debtId);
+
+          if (personIndex === -1 || debtIndex === -1) {
+            return res
+              .status(401)
+              .json({ message: "No existe el deudor o el prestamo" });
+          }
+
+          document.userDebts[personIndex].debts[debtIndex].set(req.body);
+        } else {
+          personIndex = document.otherDebts
+            .map((x) => {
+              return x.id;
+            })
+            .indexOf(req.params.personId);
+          debtIndex = document.otherDebts[personIndex].debts
+            .map((x) => {
+              return x.id;
+            })
+            .indexOf(req.params.debtId);
+
+          if (personIndex === -1 || debtIndex === -1) {
+            return res
+              .status(401)
+              .json({ message: "No existe el deudor o el prestamo" });
+          }
+
+          document.otherDebts[personIndex].debts[debtIndex].set(req.body);
+
+          if (document.otherDebts[personIndex].debts.length === 0) {
+            document.otherDebts.splice(personIndex, 1);
+          }
+        }
+      } catch (err) {
+        return res.status(401).json(err);
+      }
+
+      //restar del total y agregar/quitar de cuenta
+
+      document.save((err) => {
+        if (err) {
+          return res.status(401).json({
+            err,
+          });
+        }
+
+        res.status(200).json(document);
+      });
     });
-    return;
   }
-
-  const dni = process.env.NODE_ENV === "test" ? req.body.dni : req.user.dni;
-
-  editList("debt", dni, req.params.id, req.body, res);
-});*/
+);
 
 router.delete(
   "/api/debt/:type/:personId/:debtId",
