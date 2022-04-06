@@ -1,8 +1,8 @@
 {
   "name": "expensifyserver",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Back End for Expensify App",
+  "main": "server.js",
   "jest": {
     "verbose": true,
     "testSequencer": "./testSequencer"
