@@ -53,6 +53,9 @@ const validar = (datos) => {
         }
         break;
       }
+      case "days":
+        if(valor < 1 || valor > 31) return false;
+        break;
       case "account":
       case "originAccount":
       case "destinationAccount":
@@ -62,7 +65,7 @@ const validar = (datos) => {
         }
         break;
       case "paymentDate":
-        if(!checkPayment(valor)) return false;
+        if(!Object.keys(datos).includes("id") && !checkPayment(valor)) return false;
         break;
       default:
         break;

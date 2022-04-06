@@ -38,7 +38,6 @@ describe("Edit Document", () => {
         );
 
         paymentId = res.body.payments[0].id;
-        console.log(paymentId);
       });
   });
 
@@ -123,9 +122,7 @@ describe("Get Payments", () => {
 
 describe("Pay Payment", () => {
   test("Pay this period", async () => {
-    console.log(paymentId);
     await api.put(`/api/payment/pay/${paymentId}`).then((res) => {
-      console.log(res.body);
       expect(res.status).toBe(200);
       expect(res.body.payments.length).toBe(1);
       expect(res.body.payments[0].paymentDate).toBe(
