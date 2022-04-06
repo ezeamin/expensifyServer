@@ -1,4 +1,5 @@
 function isAuthenticated(req, res, next) {
+  console.log(req.session);
   if (process.env.NODE_ENV === "test" || req.isAuthenticated()) { //funcion de passport
     return next();
   }
