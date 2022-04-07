@@ -23,7 +23,7 @@ app.set("port", process.env.PORT || 5000);
 //middlewares
 //app.use(express.static(__dirname + '/public'));
 app.use(cors({
-  origin: "*",
+  origin: ["https://expensifytest.netlify.app","*"],
 }));
 if (process.env.NODE_ENV !== "test") {
   app.use(morgan("dev"));

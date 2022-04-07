@@ -62,10 +62,10 @@ router.post("/api/signin", async (req, res) => {
   const user = await DbUsers.findOne({ dni: req.body.dni });
 
   if (!user) {
-    return res.status(401).json({ message: "DNI no registrado" }, false);
+    return res.status(401).json({ message: "DNI no registrado" });
   }
   if (!user.comparePassword(req.body.password, user.password)) {
-    return res.status(401).json({ message: "Contraseña incorrecta" }, false);
+    return res.status(401).json({ message: "Contraseña incorrecta" });
   }
 
   const data = user.toJSON();
