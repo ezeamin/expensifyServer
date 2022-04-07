@@ -1,18 +1,18 @@
 const express = require("express");
-const passport = require("passport");
 const router = express.Router();
 
 const jwt = require("jsonwebtoken");
 
 const validar = require("../../helpers/validar");
 const isAuthenticated = require("../../helpers/isAuthenticated");
-const initiateUser = require("../../helpers/db/initiate");
+const initiateDbUsers = require("../../helpers/db/initiate");
 
 const DbUsers = require("../../models/user");
 const DbTokens = require("../../models/token");
 const { generateAccessToken } = require("../../helpers/tokens");
+const generarCodigo = require("../../helpers/generarCodigo");
 
-router.post("/api/signup", (req, res) => {
+router.post("/api/signup", async (req, res) => {
   if (!validar(req.body)) {
     res.status(401).json({
       ok: false,
@@ -21,23 +21,52 @@ router.post("/api/signup", (req, res) => {
     return;
   }
 
-  if (req.isAuthenticated()) {
-    res.status(401).json({ message: "Usuario ya autenticado" });
-    return;
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(" ")[1];
+
+  console.log(token);
+  if (token !== "null") {
+    return res.status(401).json({
+      message: "Usuario ya autenticado",
+    });
   }
 
-  passport.authenticate("local-signup", async (err, user, info) => {
-    if (err) {
-      return res.status(500).json(err);
-    }
-    if (!user) {
-      return res.status(401).json(info);
-    }
+  const exists = await DbUsers.exists({ email: req.body.email });
+  const existsDni = await DbUsers.exists({ dni: req.body.dni });
 
-    await initiateUser(req.body.dni);
+  if (exists) {
+    return res.status(401).json({
+      message: "Email en uso",
+    });
+  } else if (existsDni) {
+    return res.status(401).json({
+      message: "DNI en uso",
+    });
+  } else {
+    try {
+      const user = new DbUsers({
+        email: req.body.email,
+        password: req.body.password,
+        name: req.body.name,
+        dni: req.body.dni,
+        recCode: generarCodigo(15),
+        incorporation: new Date(),
+      });
 
-    return res.sendStatus(200);
-  })(req, res);
+      user.password = user.encryptPassword(req.body.password);
+
+      await user.save();
+
+      await initiateDbUsers(req.body.dni);
+
+      return res.sendStatus(200);
+    } catch (error) {
+      return res.status(500).json({
+        message: "Error al registrar",
+        extra: error,
+      });
+    }
+  }
 });
 
 router.post("/api/signin", async (req, res) => {
