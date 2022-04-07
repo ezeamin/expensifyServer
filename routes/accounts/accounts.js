@@ -10,6 +10,7 @@ const stringify = require("../../helpers/stringify");
 const DbAccounts = require("../../models/account");
 const editList = require("../../helpers/db/editList");
 const resetSpent = require("../../helpers/db/resetSpent");
+const generateColor = require("../../helpers/generateColor");
 
 const noBalanceAccountTypes = ["Credito"];
 
@@ -22,6 +23,10 @@ router.get("/api/accounts", isAuthenticated, async (req, res) => {
 
 
 router.put("/api/account", isAuthenticated, (req, res) => {
+  req.body.color = generateColor();
+
+  console.log(req.body)
+
   if (!validar(req.body) || !validarKeys("newAccount", req.body)) {
     res.status(401).json({
       message: "Datos inválidos",

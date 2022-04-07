@@ -6,6 +6,7 @@ const validarKeys = require("../../helpers/validarKeys");
 const isAuthenticated = require("../../helpers/isAuthenticated");
 const generarCodigo = require("../../helpers/generarCodigo");
 const stringify = require("../../helpers/stringify");
+const generateColor = require("../../helpers/generateColor");
 
 const DbCategories = require("../../models/category");
 const editList = require("../../helpers/db/editList");
@@ -18,6 +19,8 @@ router.get("/api/categories", isAuthenticated, async (req, res) => {
 });
 
 router.put("/api/category", isAuthenticated, (req, res) => {
+  req.body.color = generateColor();
+
   if (!validar(req.body) || !validarKeys("newCategory",req.body)) {
     res.status(401).json({
       message: "Datos inválidos",
@@ -34,6 +37,7 @@ router.put("/api/category", isAuthenticated, (req, res) => {
           title: stringify(req.body.title,true),
           icon: req.body.icon,
           limit: req.body.limit,
+          color: req.body.color,
           spent: 0,
           description: req.body.description,
         },

@@ -2,13 +2,10 @@ require("dotenv").config();
 
 const express = require("express");
 const morgan = require("morgan");
-const passport = require("passport");
-const session = require("express-session");
 const cors = require("cors");
-const MongoStore = require('connect-mongo');
-const { mongodb } = require("./database/keys");
 
 const app = express();
+require("./database/database");
 
 const routesAuth = require("./routes/0-auth/auth");
 const routesCategories = require("./routes/categories/categories");
@@ -19,9 +16,6 @@ const routesTransfers = require("./routes/transfers/transfers");
 const routesDebts = require("./routes/debts/debts");
 const routesPayments = require("./routes/payments/payments");
 const routesPeriods = require("./routes/periods/periods");
-
-require("./database/database");
-require("./passport/auth-login");
 
 //settings
 app.set("port", process.env.PORT || 5000);
@@ -34,16 +28,6 @@ if (process.env.NODE_ENV !== "test") {
 }
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(
-  session({
-    secret: process.env.SECRET_KEY,
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({ mongoUrl: mongodb.URI }),
-  })
-);
-app.use(passport.initialize());
-app.use(passport.session());
 
 //routes
 app.use(routesAuth);

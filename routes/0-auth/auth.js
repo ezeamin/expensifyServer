@@ -2,11 +2,15 @@ const express = require("express");
 const passport = require("passport");
 const router = express.Router();
 
+const jwt = require("jsonwebtoken");
+
 const validar = require("../../helpers/validar");
 const isAuthenticated = require("../../helpers/isAuthenticated");
 const initiateUser = require("../../helpers/db/initiate");
 
 const DbUsers = require("../../models/user");
+const DbTokens = require("../../models/token");
+const { generateAccessToken } = require("../../helpers/tokens");
 
 router.post("/api/signup", (req, res) => {
   if (!validar(req.body)) {
@@ -17,8 +21,8 @@ router.post("/api/signup", (req, res) => {
     return;
   }
 
-  if(req.isAuthenticated()) {
-    res.status(401).json({message: "Usuario ya autenticado"});
+  if (req.isAuthenticated()) {
+    res.status(401).json({ message: "Usuario ya autenticado" });
     return;
   }
 
@@ -36,7 +40,7 @@ router.post("/api/signup", (req, res) => {
   })(req, res);
 });
 
-router.post("/api/signin", (req, res) => {
+router.post("/api/signin", async (req, res) => {
   if (!validar(req.body)) {
     res.status(401).json({
       ok: false,
@@ -45,28 +49,93 @@ router.post("/api/signin", (req, res) => {
     return;
   }
 
-  if(req.isAuthenticated()) {
-    res.status(401).json({message: "Usuario ya autenticado"});
-    return;
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(" ")[1];
+
+  console.log(token);
+  if (token !== "null") {
+    return res.status(401).json({
+      message: "Usuario ya autenticado",
+    });
   }
 
-  passport.authenticate("local-login", (err, user) => {
-    if (err) {
-      return res.status(401).json(err);
-    }
-    req.logIn(user, async () => {
-      res.sendStatus(200);
+  const user = await DbUsers.findOne({ dni: req.body.dni });
 
-      const user = await DbUsers.findOne({dni: req.body.dni});
-      user.recCode = req.session.passport.user; //cambio el codigo de recuperacion
-      await user.save();
-    });
-  })(req, res);
+  if (!user) {
+    return res.status(401).json({ message: "DNI no registrado" }, false);
+  }
+  if (!user.comparePassword(req.body.password, user.password)) {
+    return res.status(401).json({ message: "Contraseña incorrecta" }, false);
+  }
+
+  const data = user.toJSON();
+  delete data.password;
+  delete data.recCode;
+
+  const accessToken = generateAccessToken(data);
+  const refreshToken = jwt.sign(data, process.env.REFRESH_SECRET_KEY);
+
+  DbTokens.create({
+    userId: user._id,
+    token: refreshToken,
+  });
+
+  return res.status(200).json({
+    accessToken,
+    refreshToken,
+  });
+});
+
+router.post("/api/refreshToken", async (req, res) => {
+  const refreshToken = req.body.token;
+  if (!refreshToken) {
+    return res.sendStatus(401);
+  }
+
+  DbTokens.findOne({ token: refreshToken }, async (err, token) => {
+    if (err) {
+      return res.sendStatus(500);
+    }
+
+    if (!token) {
+      return res.sendStatus(403);
+    }
+
+    jwt.verify(
+      refreshToken,
+      process.env.REFRESH_SECRET_KEY,
+      async (err, user) => {
+        if (err) {
+          return res.sendStatus(403);
+        }
+
+        delete user.iat;
+        delete user.sub;
+
+        const authToken = generateAccessToken(user);
+
+        return res.status(200).json({
+          token: authToken,
+        });
+      }
+    );
+  });
 });
 
 router.delete("/api/logout", (req, res) => {
-  req.logout();
-  res.sendStatus(200);
+  let token = req.headers.refresh;
+
+  if (token === null) {
+    return res.sendStatus(304);
+  }
+
+  DbTokens.deleteOne({ token }, (err) => {
+    if (err) {
+      return res.sendStatus(500);
+    }
+
+    return res.sendStatus(204);
+  });
 });
 
 router.get("/api/auth", isAuthenticated, (req, res) => {
@@ -76,7 +145,6 @@ router.get("/api/auth", isAuthenticated, (req, res) => {
       dni: req.user.dni,
       email: req.user.email,
       incorporation: req.user.incorporation,
-      //recCode: req.user.recCode,
     },
   });
 });
