@@ -102,10 +102,16 @@ router.post("/api/signin", async (req, res) => {
   const accessToken = generateAccessToken(data);
   const refreshToken = jwt.sign(data, process.env.REFRESH_SECRET_KEY);
 
-  DbTokens.create({
-    userId: user._id,
-    token: refreshToken,
-  });
+  try {
+    DbTokens.create({
+      userId: user._id,
+      token: refreshToken,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Error de servidor, intente mas tarde" });
+  }
 
   return res.status(200).json({
     accessToken,
