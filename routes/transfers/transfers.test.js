@@ -1,14 +1,24 @@
 /* eslint-disable no-undef */
 const mongoose = require("mongoose");
 const { api, randomNumber } = require("../../helpers/testFunctions");
+const fs = require("fs");
+const path = require("path");
 
 afterAll(async () => {
+  await mongoose.connection.dropDatabase();
   await mongoose.connection.close();
 });
 
 jest.setTimeout(10000);
 
 let transferId;
+let token;
+
+beforeAll(async () => {
+  token =
+    "Bearer " +
+    fs.readFileSync(path.resolve(__dirname, "../../token.txt"), "utf8");
+});
 
 describe("Edit Document", () => {
   test("New transfer", async () => {
@@ -23,11 +33,16 @@ describe("Edit Document", () => {
     await api
       .put("/api/transfer")
       .send(newTransferData)
+      .set("Authorization", token)
       .then((res) => {
         expect(res.status).toBe(200);
         expect(res.body.transfers.length).toBe(1);
-        expect(res.body.transfers[0].originAccountId).toBe(newTransferData.originAccountId);
-        expect(res.body.transfers[0].destinationAccountId).toBe(newTransferData.destinationAccountId);
+        expect(res.body.transfers[0].originAccountId).toBe(
+          newTransferData.originAccountId
+        );
+        expect(res.body.transfers[0].destinationAccountId).toBe(
+          newTransferData.destinationAccountId
+        );
         expect(res.body.transfers[0].price).toBe(newTransferData.price);
         expect(res.body.transfers[0].description).toBe(
           newTransferData.description
@@ -43,6 +58,7 @@ describe("Edit Document", () => {
 
     await api
       .put(`/api/transfer/${transferId}`)
+      .set("Authorization", token)
       .send({
         dni: "12345678",
         description: newDescription,
@@ -55,7 +71,9 @@ describe("Edit Document", () => {
           (transfer) => transfer.id === transferId
         );
 
-        expect(res.body.transfers[transferIndex].description).toBe(newDescription);
+        expect(res.body.transfers[transferIndex].description).toBe(
+          newDescription
+        );
         expect(res.body.transfers[transferIndex].price).toBe(newPrice);
       });
   });
@@ -76,6 +94,7 @@ describe("Edit Document", () => {
 
     await api
       .put(`/api/transfer/${transferId}`)
+      .set("Authorization", token)
       .send(data[0])
       .then((res) => {
         expect(res.status).toBe(404);
@@ -83,6 +102,7 @@ describe("Edit Document", () => {
 
     await api
       .put(`/api/transfer/${transferId}`)
+      .set("Authorization", token)
       .send(data[1])
       .then((res) => {
         expect(res.status).toBe(401);
@@ -92,19 +112,25 @@ describe("Edit Document", () => {
 
 describe("Get Transfers", () => {
   test("Get transfer document and transfers", async () => {
-    await api.get("/api/transfers").then((res) => {
-      expect(res.status).toBe(200);
-      expect(res.body.dni).toBe("12345678");
-      expect(res.body.transfers.length).toBe(1);
-    });
+    await api
+      .get("/api/transfers")
+      .set("Authorization", token)
+      .then((res) => {
+        expect(res.status).toBe(200);
+        expect(res.body.dni).toBe("12345678");
+        expect(res.body.transfers.length).toBe(1);
+      });
   });
 });
 
 describe("Delete transfer", () => {
   test("Delete transfer", async () => {
-    await api.delete(`/api/transfer/${transferId}`).then((res) => {
-      expect(res.status).toBe(200);
-      expect(res.body.transfers.length).toBe(0);
-    });
+    await api
+      .delete(`/api/transfer/${transferId}`)
+      .set("Authorization", token)
+      .then((res) => {
+        expect(res.status).toBe(200);
+        expect(res.body.transfers.length).toBe(0);
+      });
   });
 });

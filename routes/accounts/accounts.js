@@ -12,8 +12,6 @@ const editList = require("../../helpers/db/editList");
 const resetSpent = require("../../helpers/db/resetSpent");
 const generateColor = require("../../helpers/generateColor");
 
-const noBalanceAccountTypes = ["Credito"];
-
 router.get("/api/accounts", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
 
@@ -45,7 +43,7 @@ router.put("/api/account", isAuthenticated, (req, res) => {
           balance: req.body.balance,
           spent: 0,
           description: req.body.description,
-          noBalance: noBalanceAccountTypes.includes(req.body.accountType),
+          noBalance: Number.parseFloat(req.body.balance) === 0,
         },
       },
     },

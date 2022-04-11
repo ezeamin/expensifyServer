@@ -92,7 +92,6 @@ router.put("/api/payment/pay/:id", isAuthenticated, async (req, res) => {
     return;
   }
 
-  console.log(document.payments[paymentIndex],document.payments[paymentIndex].paymentDate)
   document.payments[paymentIndex].paymentDate = addNewMonth(
     document.payments[paymentIndex].paymentDate.toISOString().split("T")[0]
   );

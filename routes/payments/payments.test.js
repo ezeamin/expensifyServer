@@ -2,6 +2,8 @@
 const mongoose = require("mongoose");
 const addNewMonth = require("../../helpers/addNewMonth");
 const { api, randomNumber } = require("../../helpers/testFunctions");
+const fs = require("fs");
+const path = require("path");
 
 afterAll(async () => {
   await mongoose.connection.close();
@@ -20,12 +22,20 @@ const newPaymentData = {
 };
 
 var paymentId;
+let token;
+
+beforeAll(async () => {
+  token =
+    "Bearer " +
+    fs.readFileSync(path.resolve(__dirname, "../../token.txt"), "utf8");
+});
 
 describe("Edit Document", () => {
   test("New payment", async () => {
     await api
       .put("/api/payment")
       .send(newPaymentData)
+      .set('Authorization', token)
       .then((res) => {
         expect(res.status).toBe(200);
         expect(res.body.payments.length).toBe(1);
@@ -47,6 +57,7 @@ describe("Edit Document", () => {
 
     await api
       .put(`/api/payment/${paymentId}`)
+      .set('Authorization', token)
       .send({
         dni: "12345678",
         title: newTitle,
@@ -89,6 +100,7 @@ describe("Edit Document", () => {
 
     await api
       .put(`/api/payment/${paymentId}`)
+      .set('Authorization', token)
       .send(data[0])
       .then((res) => {
         expect(res.status).toBe(404);
@@ -96,6 +108,7 @@ describe("Edit Document", () => {
 
     await api
       .put(`/api/payment/${paymentId}`)
+      .set('Authorization', token)
       .send(data[1])
       .then((res) => {
         expect(res.status).toBe(401);
@@ -103,6 +116,7 @@ describe("Edit Document", () => {
 
     await api
       .put(`/api/payment/${paymentId}`)
+      .set('Authorization', token)
       .send(data[2])
       .then((res) => {
         expect(res.status).toBe(401);
@@ -112,7 +126,8 @@ describe("Edit Document", () => {
 
 describe("Get Payments", () => {
   test("Get payment document and payments", async () => {
-    await api.get("/api/payments").then((res) => {
+    await api.get("/api/payments")
+    .set('Authorization', token).then((res) => {
       expect(res.status).toBe(200);
       expect(res.body.dni).toBe("12345678");
       expect(res.body.payments.length).toBe(1);
@@ -122,7 +137,8 @@ describe("Get Payments", () => {
 
 describe("Pay Payment", () => {
   test("Pay this period", async () => {
-    await api.put(`/api/payment/pay/${paymentId}`).then((res) => {
+    await api.put(`/api/payment/pay/${paymentId}`)
+    .set('Authorization', token).then((res) => {
       expect(res.status).toBe(200);
       expect(res.body.payments.length).toBe(1);
       expect(res.body.payments[0].paymentDate).toBe(
@@ -134,7 +150,8 @@ describe("Pay Payment", () => {
 
 describe("Delete payment", () => {
   test("Delete payment", async () => {
-    await api.delete(`/api/payment/${paymentId}`).then((res) => {
+    await api.delete(`/api/payment/${paymentId}`)
+    .set('Authorization', token).then((res) => {
       expect(res.status).toBe(200);
       expect(res.body.payments.length).toBe(0);
     });

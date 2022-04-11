@@ -1,6 +1,8 @@
 /* eslint-disable no-undef */
 const mongoose = require("mongoose");
 const { api } = require("../../helpers/testFunctions");
+const fs = require("fs");
+const path = require("path");
 
 afterAll(async () => {
   await mongoose.connection.close();
@@ -9,6 +11,13 @@ afterAll(async () => {
 jest.setTimeout(10000);
 
 let personUserId, debtUserId, personOtherId, debtOtherId, debtOtherIdExtra;
+let token;
+
+beforeAll(async () => {
+  token =
+    "Bearer " +
+    fs.readFileSync(path.resolve(__dirname, "../../token.txt"), "utf8");
+});
 
 describe("Edit Document", () => {
   describe("User debts", () => {
@@ -23,6 +32,7 @@ describe("Edit Document", () => {
 
       await api
         .put("/api/debt/user")
+        .set("Authorization", token)
         .send(newPersonData)
         .then((res) => {
           expect(res.status).toBe(200);
@@ -55,6 +65,7 @@ describe("Edit Document", () => {
 
       await api
         .put(`/api/debt/user`)
+        .set("Authorization", token)
         .send(newDebtData)
         .then((res) => {
           expect(res.status).toBe(200);
@@ -83,6 +94,7 @@ describe("Edit Document", () => {
 
       await api
         .put(`/api/debt/user`)
+        .set("Authorization", token)
         .send(newDebtData)
         .then((res) => {
           expect(res.status).toBe(200);
@@ -111,6 +123,7 @@ describe("Edit Document", () => {
 
       await api
         .put("/api/debt/other")
+        .set("Authorization", token)
         .send(newPersonData)
         .then((res) => {
           expect(res.status).toBe(200);
@@ -144,6 +157,7 @@ describe("Edit Document", () => {
 
       await api
         .put(`/api/debt/other`)
+        .set("Authorization", token)
         .send(newDebtData)
         .then((res) => {
           expect(res.status).toBe(200);
@@ -174,6 +188,7 @@ describe("Edit Document", () => {
 
       await api
         .put(`/api/debt/other`)
+        .set("Authorization", token)
         .send(newDebtData)
         .then((res) => {
           expect(res.status).toBe(200);
@@ -195,23 +210,26 @@ describe("Edit Document", () => {
 
 describe("Get debts", () => {
   test("Get debts user and other", async () => {
-    await api.get("/api/debts").then((res) => {
-      expect(res.status).toBe(200);
+    await api
+      .get("/api/debts")
+      .set("Authorization", token)
+      .then((res) => {
+        expect(res.status).toBe(200);
 
-      expect(res.body.userDebts.length).toBe(2);
-      expect(res.body.userDebts[0].lenderName).toBe("Juan Perez");
-      expect(res.body.userDebts[0].debts[0].destinationAccountId).toBe(
-        "456DEF"
-      );
-      expect(res.body.userDebts[0].debts[0].price).toBe(55000);
-      expect(res.body.userDebts[0].debts[0].description).toBe("Trago recor");
+        expect(res.body.userDebts.length).toBe(2);
+        expect(res.body.userDebts[0].lenderName).toBe("Juan Perez");
+        expect(res.body.userDebts[0].debts[0].destinationAccountId).toBe(
+          "456DEF"
+        );
+        expect(res.body.userDebts[0].debts[0].price).toBe(55000);
+        expect(res.body.userDebts[0].debts[0].description).toBe("Trago recor");
 
-      expect(res.body.otherDebts.length).toBe(2);
-      expect(res.body.otherDebts[0].debtorName).toBe("Juan Perez");
-      expect(res.body.otherDebts[0].debts[0].originAccountId).toBe("456DEF");
-      expect(res.body.otherDebts[0].debts[0].price).toBe(55000);
-      expect(res.body.otherDebts[0].debts[0].description).toBe("Trago recor");
-    });
+        expect(res.body.otherDebts.length).toBe(2);
+        expect(res.body.otherDebts[0].debtorName).toBe("Juan Perez");
+        expect(res.body.otherDebts[0].debts[0].originAccountId).toBe("456DEF");
+        expect(res.body.otherDebts[0].debts[0].price).toBe(55000);
+        expect(res.body.otherDebts[0].debts[0].description).toBe("Trago recor");
+      });
   });
 });
 
@@ -224,11 +242,14 @@ describe("Modify debt", () => {
 
     await api
       .put(`/api/debt/user/${personUserId}/${debtUserId}`)
+      .set("Authorization", token)
       .send(newData)
       .then((res) => {
         expect(res.status).toBe(200);
         expect(res.body.userDebts.length).toBe(2);
-        expect(res.body.userDebts[0].debts[1].destinationAccountId).toBe(newData.destinationAccountId);
+        expect(res.body.userDebts[0].debts[1].destinationAccountId).toBe(
+          newData.destinationAccountId
+        );
       });
   });
 
@@ -240,11 +261,14 @@ describe("Modify debt", () => {
 
     await api
       .put(`/api/debt/other/${personOtherId}/${debtOtherId}`)
+      .set("Authorization", token)
       .send(newData)
       .then((res) => {
         expect(res.status).toBe(200);
         expect(res.body.otherDebts.length).toBe(2);
-        expect(res.body.otherDebts[0].debts[1].originAccountId).toBe(newData.originAccountId);
+        expect(res.body.otherDebts[0].debts[1].originAccountId).toBe(
+          newData.originAccountId
+        );
       });
   });
 });
@@ -253,6 +277,7 @@ describe("Delete debt", () => {
   test("Delete user debt", async () => {
     await api
       .delete(`/api/debt/user/${personUserId}/${debtUserId}`)
+      .set("Authorization", token)
       .then((res) => {
         expect(res.status).toBe(200);
         expect(res.body.userDebts.length).toBe(2);
@@ -263,6 +288,7 @@ describe("Delete debt", () => {
   test("Delete other debt", async () => {
     await api
       .delete(`/api/debt/other/${personOtherId}/${debtOtherId}`)
+      .set("Authorization", token)
       .then((res) => {
         expect(res.status).toBe(200);
         expect(res.body.otherDebts.length).toBe(2);
@@ -271,18 +297,25 @@ describe("Delete debt", () => {
   });
 
   test("Delete invalid debt", async () => {
-    await api.delete(`/api/debt/other/${personOtherId}/123`).then((res) => {
-      expect(res.status).toBe(401);
-    });
+    await api
+      .delete(`/api/debt/other/${personOtherId}/123`)
+      .set("Authorization", token)
+      .then((res) => {
+        expect(res.status).toBe(401);
+      });
 
-    await api.delete(`/api/debt/other/456/${debtOtherId}`).then((res) => {
-      expect(res.status).toBe(401);
-    });
+    await api
+      .delete(`/api/debt/other/456/${debtOtherId}`)
+      .set("Authorization", token)
+      .then((res) => {
+        expect(res.status).toBe(401);
+      });
   });
 
   test("Delete other debt, erasing the object", async () => {
     await api
       .delete(`/api/debt/other/${personOtherId}/${debtOtherIdExtra}`)
+      .set("Authorization", token)
       .then((res) => {
         expect(res.status).toBe(200);
         expect(res.body.otherDebts.length).toBe(1);

@@ -7,7 +7,7 @@ const accountSchema = new Schema({
     icon: String,
     color: String,
     accountType: String,
-    balance: Number,
+    balance: Number, 
     spent: Number,
     description: String,
     noBalance: Boolean,

@@ -21,7 +21,7 @@ router.get("/api/categories", isAuthenticated, async (req, res) => {
 router.put("/api/category", isAuthenticated, (req, res) => {
   req.body.color = generateColor();
 
-  if (!validar(req.body) || !validarKeys("newCategory",req.body)) {
+  if (!validar(req.body) || !validarKeys("newCategory", req.body)) {
     res.status(401).json({
       message: "Datos inválidos",
     });
@@ -34,12 +34,13 @@ router.put("/api/category", isAuthenticated, (req, res) => {
       $push: {
         categories: {
           id: generarCodigo(8),
-          title: stringify(req.body.title,true),
+          title: stringify(req.body.title, true),
           icon: req.body.icon,
           limit: req.body.limit,
           color: req.body.color,
           spent: 0,
           description: req.body.description,
+          noLimit: Number.parseFloat(req.body.limit) === 0,
         },
       },
     },
@@ -66,7 +67,7 @@ router.put("/api/category/:id", isAuthenticated, (req, res) => {
 
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
 
-  editList("category", dni, req.params.id, req.body,res);
+  editList("category", dni, req.params.id, req.body, res);
 });
 
 //reset spent of all categories

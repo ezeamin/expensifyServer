@@ -1,6 +1,8 @@
 /* eslint-disable no-undef */
 const mongoose = require("mongoose");
 const { api, randomNumber } = require("../../helpers/testFunctions");
+const fs = require("fs");
+const path = require("path");
 
 afterAll(async () => {
   await mongoose.connection.close();
@@ -9,6 +11,13 @@ afterAll(async () => {
 jest.setTimeout(10000);
 
 let incomeId;
+let token;
+
+beforeAll(async () => {
+  token =
+    "Bearer " +
+    fs.readFileSync(path.resolve(__dirname, "../../token.txt"), "utf8");
+});
 
 describe("Edit Document", () => {
   test("New income", async () => {
@@ -22,6 +31,7 @@ describe("Edit Document", () => {
 
     await api
       .put("/api/income")
+      .set('Authorization', token)
       .send(newIncomeData)
       .then((res) => {
         expect(res.status).toBe(200);
@@ -43,6 +53,7 @@ describe("Edit Document", () => {
 
     await api
       .put(`/api/income/${incomeId}`)
+      .set('Authorization', token)
       .send({
         dni: "12345678",
         title: newTitle,
@@ -78,6 +89,7 @@ describe("Edit Document", () => {
 
     await api
       .put(`/api/income/${incomeId}`)
+      .set('Authorization', token)
       .send(data[0])
       .then((res) => {
         expect(res.status).toBe(404);
@@ -85,6 +97,7 @@ describe("Edit Document", () => {
 
     await api
       .put(`/api/income/${incomeId}`)
+      .set('Authorization', token)
       .send(data[1])
       .then((res) => {
         expect(res.status).toBe(401);
@@ -94,7 +107,8 @@ describe("Edit Document", () => {
 
 describe("Get Incomes", () => {
   test("Get income document and incomes", async () => {
-    await api.get("/api/incomes").then((res) => {
+    await api.get("/api/incomes")
+    .set('Authorization', token).then((res) => {
       expect(res.status).toBe(200);
       expect(res.body.dni).toBe("12345678");
       expect(res.body.incomes.length).toBe(1);
@@ -104,7 +118,8 @@ describe("Get Incomes", () => {
 
 describe("Delete income", () => {
   test("Delete income", async () => {
-    await api.delete(`/api/income/${incomeId}`).then((res) => {
+    await api.delete(`/api/income/${incomeId}`)
+    .set('Authorization', token).then((res) => {
       expect(res.status).toBe(200);
       expect(res.body.incomes.length).toBe(0);
     });

@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const {
   api,
 } = require("../../helpers/testFunctions");
+const fs = require("fs");
 
 beforeAll(async () => {
   //drop database
@@ -159,6 +160,9 @@ describe("Sign in", () => {
       })
       .then((res) => {
         expect(res.status).toBe(200);
+        expect(res.body.accessToken).toBeDefined();
+
+        fs.writeFileSync("./token.txt", res.body.accessToken);
       });
   });
 });

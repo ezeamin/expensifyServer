@@ -1,6 +1,8 @@
 /* eslint-disable no-undef */
 const mongoose = require("mongoose");
 const { api, randomNumber } = require("../../helpers/testFunctions");
+const fs = require("fs");
+const path = require("path");
 
 afterAll(async () => {
   await mongoose.connection.close();
@@ -9,6 +11,13 @@ afterAll(async () => {
 jest.setTimeout(10000);
 
 let expenseId;
+let token;
+
+beforeAll(async () => {
+  token =
+    "Bearer " +
+    fs.readFileSync(path.resolve(__dirname, "../../token.txt"), "utf8");
+});
 
 describe("Edit Document", () => {
   test("New expense", async () => {
@@ -24,6 +33,7 @@ describe("Edit Document", () => {
     await api
       .put("/api/expense")
       .send(newExpenseData)
+      .set('Authorization', token)
       .then((res) => {
         expect(res.status).toBe(200);
         expect(res.body.expenses.length).toBe(1);
@@ -45,6 +55,7 @@ describe("Edit Document", () => {
 
     await api
       .put(`/api/expense/${expenseId}`)
+      .set('Authorization', token)
       .send({
         dni: "12345678",
         title: newTitle,
@@ -80,6 +91,7 @@ describe("Edit Document", () => {
 
     await api
       .put(`/api/expense/${expenseId}`)
+      .set('Authorization', token)
       .send(data[0])
       .then((res) => {
         expect(res.status).toBe(404);
@@ -87,6 +99,7 @@ describe("Edit Document", () => {
 
     await api
       .put(`/api/expense/${expenseId}`)
+      .set('Authorization', token)
       .send(data[1])
       .then((res) => {
         expect(res.status).toBe(401);
@@ -96,7 +109,8 @@ describe("Edit Document", () => {
 
 describe("Get Expenses", () => {
   test("Get expense document and expenses", async () => {
-    await api.get("/api/expenses").then((res) => {
+    await api.get("/api/expenses")
+    .set('Authorization', token).then((res) => {
       expect(res.status).toBe(200);
       expect(res.body.dni).toBe("12345678");
       expect(res.body.expenses.length).toBe(1);
@@ -106,7 +120,8 @@ describe("Get Expenses", () => {
 
 describe("Delete expense", () => {
   test("Delete expense", async () => {
-    await api.delete(`/api/expense/${expenseId}`).then((res) => {
+    await api.delete(`/api/expense/${expenseId}`)
+    .set('Authorization', token).then((res) => {
       expect(res.status).toBe(200);
       expect(res.body.expenses.length).toBe(0);
     });

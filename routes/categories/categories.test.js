@@ -4,6 +4,8 @@ const {
   api,
   randomNumber,
 } = require("../../helpers/testFunctions");
+const fs = require("fs");
+const path = require("path");
 
 afterAll(async () => {
   await mongoose.connection.close();
@@ -21,11 +23,19 @@ const data = {
 };
 
 var categoryId;
+let token;
+
+beforeAll(async () => {
+  token =
+    "Bearer " +
+    fs.readFileSync(path.resolve(__dirname, "../../token.txt"), "utf8");
+});
 
 describe("Edit documents", () => {
   test("Add new category", async () => {
     await api
       .put("/api/category")
+      .set('Authorization', token)
       .send(data)
       .then((res) => {
         expect(res.status).toBe(200);
@@ -39,6 +49,7 @@ describe("Edit documents", () => {
   test("Edit category", async () => {
     await api
       .put(`/api/category/${categoryId}`)
+      .set('Authorization', token)
       .send({
         dni: "12345678",
         spent: 100,
@@ -47,7 +58,8 @@ describe("Edit documents", () => {
         expect(res.status).toBe(200);
       });
 
-    await api.get(`/api/categories`).then((res) => {
+    await api.get(`/api/categories`)
+    .set('Authorization', token).then((res) => {
       let categoryIndex = res.body.categories.findIndex(
         (category) => category.id === categoryId
       );
@@ -60,6 +72,7 @@ describe("Edit documents", () => {
   test("Invalid data new category", async () => {
     await api
       .post("/api/category")
+      .set('Authorization', token)
       .send({
         dni: "pepe", // invalid dni
         title: "Alimentos",
@@ -74,6 +87,7 @@ describe("Edit documents", () => {
 
     await api
       .put("/api/category")
+      .set('Authorization', token)
       .send({
         dni: randomNumber(8),
         title: "A", //incorrect name
@@ -88,6 +102,7 @@ describe("Edit documents", () => {
 
     await api
       .put("/api/category")
+      .set('Authorization', token)
       .send({
         dni: randomNumber(8),
         title: "Alimentos",
@@ -102,6 +117,7 @@ describe("Edit documents", () => {
 
     await api
       .put("/api/category")
+      .set('Authorization', token)
       .send({
         dni: randomNumber(8),
         title: "Alimentos",
@@ -116,6 +132,7 @@ describe("Edit documents", () => {
 
     await api
       .put("/api/category")
+      .set('Authorization', token)
       .send({
         dni: randomNumber(8),
         title: "Alimentos",
@@ -130,6 +147,7 @@ describe("Edit documents", () => {
 
     await api
       .put("/api/category")
+      .set('Authorization', token)
       .send({
         dni: randomNumber(8),
         title: "Alimentos",
@@ -145,7 +163,8 @@ describe("Edit documents", () => {
 
 describe("Get categories", () => {
   test("Get category document and categories", async () => {
-    await api.get("/api/categories").then((res) => {
+    await api.get("/api/categories")
+    .set('Authorization', token).then((res) => {
       expect(res.status).toBe(200);
       expect(res.body.dni).toBe("12345678");
       expect(res.body.categories.length).toBe(1);
@@ -158,6 +177,7 @@ describe("New period actions", () => {
   test("Reset spent attribute in all categories", async () => {
     await api
       .put("/api/categories/reset")
+      .set('Authorization', token)
       .send({
         dni: "12345678",
       })
@@ -165,7 +185,8 @@ describe("New period actions", () => {
         expect(res.status).toBe(200);
       });
 
-    await api.get("/api/categories").then((res) => {
+    await api.get("/api/categories")
+    .set('Authorization', token).then((res) => {
       expect(res.status).toBe(200);
       expect(res.body.categories[0].spent).toBe(0);
     });
@@ -176,6 +197,7 @@ describe("Delete documents", () => {
   test("Delete category", async () => {
     await api
       .delete(`/api/category/${categoryId}`)
+      .set('Authorization', token)
       .send({
         dni: "12345678",
       })
@@ -183,7 +205,8 @@ describe("Delete documents", () => {
         expect(res.status).toBe(200);
       });
 
-    await api.get(`/api/categories`).then((res) => {
+    await api.get(`/api/categories`)
+    .set('Authorization', token).then((res) => {
       expect(res.status).toBe(200);
       expect(res.body.categories.length).toBe(0);
     });

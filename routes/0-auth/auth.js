@@ -24,8 +24,7 @@ router.post("/api/signup", async (req, res) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1];
 
-  console.log(token);
-  if (token !== "null") {
+  if (token.length >= 10) {
     return res.status(401).json({
       message: "Usuario ya autenticado",
     });
@@ -81,8 +80,7 @@ router.post("/api/signin", async (req, res) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1];
 
-  console.log(token);
-  if (token !== "null") {
+  if (token.length >= 10) {
     return res.status(401).json({
       message: "Usuario ya autenticado",
     });

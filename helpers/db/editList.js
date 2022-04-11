@@ -38,6 +38,20 @@ const editList = async (type, dni, id, newData, res) => {
 
       info[listName][infoPosition].set(newData);
 
+      if (type === "account") {
+        if (newData.balance === 0) {
+          info[listName][infoPosition].noBalance = true;
+        } else {
+          info[listName][infoPosition].noBalance = false;
+        }
+      } else if (type === "category") {
+        if (newData.limit === 0) {
+          info[listName][infoPosition].noLimit = true;
+        } else {
+          info[listName][infoPosition].noLimit = false;
+        }
+      }
+
       await info.save((err) => {
         if (err) {
           res.status(401).json(err);

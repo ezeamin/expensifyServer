@@ -1,6 +1,8 @@
 /* eslint-disable no-undef */
 const mongoose = require("mongoose");
 const { api, randomNumber } = require("../../helpers/testFunctions");
+const fs = require("fs");
+const path = require("path");
 
 afterAll(async () => {
   await mongoose.connection.close();
@@ -49,10 +51,19 @@ const newPeriod = {
   ],
 };
 
+let token;
+
+beforeAll(async () => {
+  token =
+    "Bearer " +
+    fs.readFileSync(path.resolve(__dirname, "../../token.txt"), "utf8");
+});
+
 describe("Edit Document", () => {
   test("New period", async () => {
     await api
       .put("/api/period")
+      .set('Authorization', token)
       .send(newPeriod)
       .then((res) => {
         expect(res.status).toBe(200);
@@ -202,6 +213,7 @@ describe("Edit Document", () => {
     for (let i = 0; i < invalidPeriod.length; i++) {
       await api
         .put("/api/period")
+        .set('Authorization', token)
         .send(invalidPeriod[i])
         .then((res) => {
           expect(res.status).toBe(401);
@@ -213,7 +225,8 @@ describe("Edit Document", () => {
 
 describe("Get document", () => {
   test("Get document", async () => {
-    await api.get("/api/periods").then((res) => {
+    await api.get("/api/periods")
+    .set('Authorization', token).then((res) => {
       expect(res.status).toBe(200);
       expect(res.body.periods.length).toBe(1);
       expect(res.body.periods[0].start).toBe(newPeriod.start.toISOString());
