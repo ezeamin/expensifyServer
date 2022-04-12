@@ -80,9 +80,9 @@ router.post("/api/signin", async (req, res) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1];
 
-  if (token.length >= 10) {
+  if (token.length >= 10) { //null & undefined
     return res.status(401).json({
-      message: "Usuario ya autenticado",
+      message: "Usuario ya autenticado", //multiples dispositivos?
     });
   }
 
@@ -102,6 +102,16 @@ router.post("/api/signin", async (req, res) => {
   const accessToken = generateAccessToken(data);
   const refreshToken = jwt.sign(data, process.env.REFRESH_SECRET_KEY);
 
+  
+  const doc = await DbTokens.findOne({ userId: user._id });
+
+  if (doc) {
+    doc.token = refreshToken;
+    await doc.save();
+    return res.status(401).json({ message: "Usuario ya autenticado", accessToken, refreshToken });
+    //esto invalida la sesion de ese usuario en otro dispositivo
+  }
+
   try {
     DbTokens.create({
       userId: user._id,
@@ -110,7 +120,7 @@ router.post("/api/signin", async (req, res) => {
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Error de servidor, intente mas tarde" });
+      .json({ message: "Error de servidor, intenta mas tarde" });
   }
 
   return res.status(200).json({

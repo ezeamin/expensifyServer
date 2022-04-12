@@ -19,6 +19,15 @@ router.get("/api/accounts", isAuthenticated, async (req, res) => {
   res.json(accounts);
 });
 
+router.get("/api/account/:id", isAuthenticated, async (req, res) => {
+  const id = req.params.id;
+  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+
+  const accounts = await DbAccounts.findOne({ dni });
+  const account = accounts.accounts.find((account) => account.id === id);
+
+  res.json(account);
+});
 
 router.put("/api/account", isAuthenticated, (req, res) => {
   req.body.color = generateColor();

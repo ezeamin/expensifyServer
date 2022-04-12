@@ -18,6 +18,16 @@ router.get("/api/categories", isAuthenticated, async (req, res) => {
   res.status(200).json(categories);
 });
 
+router.get("/api/category/:id", isAuthenticated, async (req, res) => {
+  const id = req.params.id;
+  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+
+  const categories = await DbCategories.findOne({ dni });
+  const category = categories.categories.find((category) => category.id === id);
+
+  res.status(200).json(category);
+});
+
 router.put("/api/category", isAuthenticated, (req, res) => {
   req.body.color = generateColor();
 
