@@ -2,6 +2,10 @@ const express = require("express");
 const router = express.Router();
 
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
+const DeviceDetector = require("device-detector-js");
+
+const deviceDetector = new DeviceDetector();
 
 const validar = require("../../helpers/validar");
 const isAuthenticated = require("../../helpers/isAuthenticated");
@@ -24,7 +28,7 @@ router.post("/api/signup", async (req, res) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1];
 
-  if (token.length >= 10) {
+  if (token && token.length >= 10) {
     return res.status(401).json({
       message: "Usuario ya autenticado",
     });
@@ -80,7 +84,8 @@ router.post("/api/signin", async (req, res) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1];
 
-  if (token.length >= 10) { //null & undefined
+  if (token && token.length >= 10) {
+    //null & undefined
     return res.status(401).json({
       message: "Usuario ya autenticado", //multiples dispositivos?
     });
@@ -102,20 +107,28 @@ router.post("/api/signin", async (req, res) => {
   const accessToken = generateAccessToken(data);
   const refreshToken = jwt.sign(data, process.env.REFRESH_SECRET_KEY);
 
-  
-  const doc = await DbTokens.findOne({ userId: user._id });
+  const doc = await DbTokens.findOne({
+    userId: user._id,
+    browser: req.useragent.browser,
+    os: req.useragent.os,
+    isMobile: req.useragent.isMobile,
+  });
 
   if (doc) {
     doc.token = refreshToken;
     await doc.save();
-    return res.status(401).json({ message: "Usuario ya autenticado", accessToken, refreshToken });
-    //esto invalida la sesion de ese usuario en otro dispositivo
+    return res
+      .status(401)
+      .json({ message: "Usuario ya autenticado", accessToken, refreshToken });
   }
 
   try {
     DbTokens.create({
       userId: user._id,
       token: refreshToken,
+      browser: req.useragent.browser,
+      os: req.useragent.os,
+      isMobile: req.useragent.isMobile,
     });
   } catch (error) {
     return res
@@ -162,6 +175,48 @@ router.post("/api/refreshToken", async (req, res) => {
         });
       }
     );
+  });
+});
+
+router.get("/api/email/:dni", async (req, res) => {
+  const dni = req.params.dni;
+
+  const user = await DbUsers.findOne({ dni: dni });
+
+  if (!user) {
+    return res.status(401).json({
+      message: "DNI no registrado",
+    });
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: "smtp-mail.outlook.com",
+    auth: {
+      user: "expensify-arg@outlook.com",
+      pass: "expensify2022",
+    },
+    tls: {
+      rejectUnauthorized: false,
+      ciphers: "SSLv3",
+    },
+  });
+
+  const mailOptions = {
+    from: "expensify-arg@outlook.com",
+    to: user.email,
+    subject: "Expensify - Recuperacion de contraseña",
+    text: `Hola, ${user.name}!\n\nPara recuperar tu contraseña, ingresa dentro de los 15 minutos siguientes a este link: https://expensify-arg.herokuapp.com/api/recuperar/${user.recCode}\n\nSaludos,\nEquipo Expensify\n\nSi no pediste este cambio, puedes ignorar este correo.`,
+  };
+
+  transporter.sendMail(mailOptions, function (error) {
+    if (error) {
+      return res.status(500).json({
+        message: "Error al enviar correo",
+        extra: error,
+      });
+    } else {
+      return res.sendStatus(200);
+    }
   });
 });
 
