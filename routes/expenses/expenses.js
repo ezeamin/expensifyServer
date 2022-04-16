@@ -11,6 +11,8 @@ const DbExpenses = require("../../models/expense");
 const DBCategories = require("../../models/category");
 const DbAccounts = require("../../models/account");
 const editList = require("../../helpers/db/editList");
+const formatDate = require("../../helpers/formatDate");
+const roundToTwo = require("../../helpers/roundToTwo");
 
 router.get("/api/expenses", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
@@ -39,29 +41,14 @@ router.get("/api/expenses/listTransform", isAuthenticated, async (req, res) => {
       (account) => account.id === expense.accountId
     );
 
-    const date = new Date(expense.date + " UTC");
-
-    let days = date.getDate();
-    let month = date.getMonth() + 1;
-    let year = date.getFullYear();
-
-    if (days < 10) {
-      days = "0" + days;
-    }
-    if (month < 10) {
-      month = "0" + month;
-    }
-
-    const formatDate = `${days}/${month}/${year}`;
-
-    let time = date.toISOString().substr(11, 8);
+    let date = formatDate(expense.date);
 
     return {
       id: expense.id,
       title: expense.title,
       price: expense.price,
-      date: formatDate,
-      time: time,
+      date: date.day,
+      time: date.time,
       category: category.title,
       icon: category.icon,
       color: category.color,
@@ -99,7 +86,7 @@ router.put("/api/expense", isAuthenticated, async (req, res) => {
     categoryId: req.body.categoryId,
     accountId: req.body.accountId,
     date: new Date(),
-    price: req.body.price,
+    price: roundToTwo(req.body.price),
     description: req.body.description,
   });
 

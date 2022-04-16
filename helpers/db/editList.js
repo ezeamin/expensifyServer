@@ -1,3 +1,5 @@
+const roundToTwo = require("../roundToTwo");
+
 const switchFunction = (type) => {
   switch (type) {
     case "account":
@@ -32,6 +34,10 @@ const editList = async (type, dni, id, newData, res) => {
       if (!info) {
         res.sendStatus(404);
         return;
+      }
+
+      if(Object.keys(newData).includes("price")){
+        newData.price = roundToTwo(newData.price);
       }
 
       let infoPosition = info[listName].findIndex((info) => info.id === id);

@@ -52,7 +52,7 @@ const validar = (datos) => {
         }
         break;
       case "price": {
-        if (!/^[0-9]{1,7}$/i.test(valor) || Number.parseFloat(valor) === 0) {
+        if (!/^\d+\.?\d*$/i.test(valor) || Number.parseFloat(valor) === 0) {
           return false;
         }
         break;

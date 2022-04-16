@@ -10,6 +10,8 @@ const stringify = require("../../helpers/stringify");
 const DbIncomes = require("../../models/income");
 const DbAccounts = require("../../models/account");
 const editList = require("../../helpers/db/editList");
+const formatDate = require("../../helpers/formatDate");
+const roundToTwo = require("../../helpers/roundToTwo");
 
 router.get("/api/incomes", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
@@ -43,7 +45,7 @@ router.put("/api/income", isAuthenticated, async (req, res) => {
     title: stringify(req.body.title, true),
     accountId: req.body.accountId,
     date: new Date(),
-    price: req.body.price,
+    price: roundToTwo(req.body.price),
     description: req.body.description,
   });
 
@@ -73,29 +75,14 @@ router.get("/api/incomes/listTransform", isAuthenticated, async (req, res) => {
       (account) => account.id === income.accountId
     );
 
-    const date = new Date(income.date + " UTC");
-
-    let days = date.getDate();
-    let month = date.getMonth() + 1;
-    let year = date.getFullYear();
-
-    if (days < 10) {
-      days = "0" + days;
-    }
-    if (month < 10) {
-      month = "0" + month;
-    }
-
-    const formatDate = `${days}/${month}/${year}`;
-
-    let time = date.toISOString().substr(11, 8);
+    let date = formatDate(income.date);
 
     return {
       id: income.id,
       title: income.title,
       price: income.price,
-      date: formatDate,
-      time: time,
+      date: date.day,
+      time: date.time,
       account: account.title,
       accountColor: account.color,
       description: income.description,
