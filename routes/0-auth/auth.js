@@ -236,6 +236,10 @@ router.delete("/api/logout", (req, res) => {
   });
 });
 
+router.get("/api/ping", (req,res) => {
+  return res.sendStatus(200);
+})
+
 router.get("/api/auth", isAuthenticated, (req, res) => {
   res.status(200).json({
     user: {
