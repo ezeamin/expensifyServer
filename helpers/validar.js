@@ -10,7 +10,6 @@ const validar = (datos) => {
         }
         break;
       case "name":
-      case "accountType":
         if (!validateString(valor) || valor.length > 20 || valor.length < 2) {
           return false;
         }

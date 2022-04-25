@@ -3,9 +3,6 @@ const router = express.Router();
 
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
-const DeviceDetector = require("device-detector-js");
-
-const deviceDetector = new DeviceDetector();
 
 const validar = require("../../helpers/validar");
 const isAuthenticated = require("../../helpers/isAuthenticated");
