@@ -40,12 +40,33 @@ router.put("/api/income", isAuthenticated, async (req, res) => {
     return;
   }
 
+  // relations
+
+  const price = roundToTwo(req.body.price);
+
+  const accountDocument = await DbAccounts.findOne({ dni });
+
+  const accountIndex = accountDocument.accounts.findIndex(
+    (account) => account.id === req.body.accountId
+  );
+
+  if(!accountDocument.accounts[accountIndex].noBalance){
+    const newBalance = accountDocument.accounts[accountIndex].balance + price;
+    accountDocument.accounts[accountIndex].balance = newBalance;
+
+    accountDocument.generalBalance += price;
+
+    await accountDocument.save();
+  }
+
+  // saving income
+
   document.incomes.push({
     id: generarCodigo(8),
     title: stringify(req.body.title, true),
     accountId: req.body.accountId,
     date: new Date(),
-    price: roundToTwo(req.body.price),
+    price: price,
     description: req.body.description,
   });
 

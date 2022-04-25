@@ -39,12 +39,50 @@ router.put("/api/transfer", isAuthenticated, async (req, res) => {
     return;
   }
 
+  // relations
+
+  const price = roundToTwo(req.body.price);
+
+  const accountDocument = await DbAccounts.findOne({ dni });
+
+  const originAccountIndex = accountDocument.accounts.findIndex(
+    (account) => account.id === req.body.originAccountId
+  );
+  const destinationAccountIndex = accountDocument.accounts.findIndex(
+    (account) => account.id === req.body.destinationAccountId
+  );
+
+  if (
+    accountDocument.accounts[destinationAccountIndex].noBalance ||
+    accountDocument.accounts[originAccountIndex].noBalance
+  ) {
+    return res.status(401).json({
+      message:
+        "No se puede transferir desde/hacia una cuenta sin saldo alterable (crédito por ejemplo)",
+    });
+  }
+
+  if (accountDocument.accounts[originAccountIndex].balance < price) {
+    return res.status(401).json({
+      message: "No hay suficiente saldo en la cuenta de origen seleccionada",
+    });
+  }
+
+  accountDocument.accounts[originAccountIndex].balance =
+    accountDocument.accounts[originAccountIndex].balance - price;
+  accountDocument.accounts[destinationAccountIndex].balance =
+    accountDocument.accounts[destinationAccountIndex].balance + price;
+
+  await accountDocument.save();
+
+  // saving transfer
+
   document.transfers.push({
     id: generarCodigo(8),
     originAccountId: req.body.originAccountId,
     destinationAccountId: req.body.destinationAccountId,
     date: new Date(),
-    price: roundToTwo(req.body.price),
+    price: price,
     description: req.body.description,
   });
 

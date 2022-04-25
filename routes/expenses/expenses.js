@@ -69,8 +69,8 @@ router.put("/api/expense", isAuthenticated, async (req, res) => {
   }
 
   //push new expense
-  const dni = process.env.NODE_ENV === "test" ? req.body.dni : req.user.dni;
 
+  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
   const document = await DbExpenses.findOne({ dni });
 
   if (!document) {
@@ -80,13 +80,49 @@ router.put("/api/expense", isAuthenticated, async (req, res) => {
     return;
   }
 
+  // relations
+
+  const price = roundToTwo(req.body.price);
+
+  const accountDocument = await DbAccounts.findOne({ dni });
+  const categoryDocument = await DBCategories.findOne({ dni });
+
+  const accountIndex = accountDocument.accounts.findIndex(
+    (account) => account.id === req.body.accountId
+  );
+
+  const categoryIndex = categoryDocument.categories.findIndex(
+    (category) => category.id === req.body.categoryId
+  );
+
+  if(!accountDocument.accounts[accountIndex].noBalance){
+    if(accountDocument.accounts[accountIndex].balance < price){
+      return res.status(401).json({
+        message: "No hay suficiente saldo en la cuenta seleccionada",
+      });
+    }
+
+    const newBalance = accountDocument.accounts[accountIndex].balance - price;
+    accountDocument.accounts[accountIndex].balance = newBalance;
+
+    accountDocument.spent += price;
+    accountDocument.generalBalance -= price;
+
+    await accountDocument.save();
+  }
+
+  categoryDocument.categories[categoryIndex].spent += price;
+  await categoryDocument.save();
+
+  // saving expense
+
   document.expenses.push({
     id: generarCodigo(8),
     title: stringify(req.body.title, true),
     categoryId: req.body.categoryId,
     accountId: req.body.accountId,
     date: new Date(),
-    price: roundToTwo(req.body.price),
+    price: price,
     description: req.body.description,
   });
 
