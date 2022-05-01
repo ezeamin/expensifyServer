@@ -202,7 +202,7 @@ router.get("/api/email/:dni", async (req, res) => {
     from: "expensify-arg@outlook.com",
     to: user.email,
     subject: "Expensify - Recuperacion de contraseña",
-    text: `Hola, ${user.name}!\n\nPara recuperar tu contraseña, ingresa dentro de los 15 minutos siguientes a este link: https://expensify-arg.herokuapp.com/api/recuperar/${user.recCode}\n\nSaludos,\nEquipo Expensify\n\nSi no pediste este cambio, puedes ignorar este correo.`,
+    text: `Hola, ${user.name}!\n\nPara recuperar tu contraseña, ingresa dentro de los 15 minutos siguientes a este link: https://expensify-arg.netlify.app/auth/recPassword/${user.recCode}\n\nSaludos,\nEquipo Expensify\n\nSi no pediste este cambio, puedes ignorar este correo.`,
   };
 
   transporter.sendMail(mailOptions, function (error) {
