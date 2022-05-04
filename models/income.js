@@ -8,6 +8,7 @@ const incomeSchema = new Schema({
   price: Number,
   description: String,
   accountId: String,
+  modified: Boolean,
 });
 
 const userIncomeSchema = new Schema({

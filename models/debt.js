@@ -10,6 +10,7 @@ const userDebtSchema = new Schema({
     date: Date,
     price: Number,
     description: String,
+    modified: Boolean,
   }],
 });
 

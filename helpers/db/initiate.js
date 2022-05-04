@@ -13,6 +13,7 @@ const initiateUser = async (dni) => {
   const account = new DbAccounts({
     dni,
     spent: 0,
+    generalBalance: 0,
     accounts: [],
   });
 

@@ -10,6 +10,7 @@ const paymentSchema = new Schema({
   paymentDate: Date,
   price: Number,
   description: String,
+  modified: Boolean,
 });
 
 const userPaymentSchema = new Schema({

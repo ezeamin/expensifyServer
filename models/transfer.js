@@ -9,6 +9,7 @@ const transferSchema = new Schema({
   description: String,
   originAccountId: String,
   destinationAccountId: String,
+  modified: Boolean,
 });
 
 const userTransferSchema = new Schema({

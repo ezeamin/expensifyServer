@@ -9,6 +9,7 @@ const expenseSchema = new Schema({
   date: Date,
   price: Number,
   description: String,
+  modified: Boolean,
 });
 
 const userExpenseSchema = new Schema({
