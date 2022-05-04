@@ -20,6 +20,7 @@ const userAccountSchema = new Schema({
   },
   spent: Number,
   generalBalance: Number,
+  generalLimit: Number,
   accounts: [accountSchema],
 });
 

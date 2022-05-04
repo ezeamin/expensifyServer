@@ -14,6 +14,7 @@ const initiateUser = async (dni) => {
     dni,
     spent: 0,
     generalBalance: 0,
+    generalLimit: 0,
     accounts: [],
   });
 
