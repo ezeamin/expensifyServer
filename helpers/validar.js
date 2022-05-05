@@ -28,7 +28,7 @@ const validar = (datos) => {
         }
         break;
       case "icon":
-        if (valor.length > 30 || valor.length < 2) {
+        if (valor.length > 40 || valor.length < 2) {
           return false;
         }
         break;
