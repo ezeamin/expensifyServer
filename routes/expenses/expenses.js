@@ -21,6 +21,25 @@ router.get("/api/expenses", isAuthenticated, async (req, res) => {
   res.json(document);
 });
 
+router.get("/api/expense/:id", isAuthenticated, async (req, res) => {
+  const id = req.params.id;
+  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+
+  const document = await DbExpenses.findOne({ dni });
+  const expense = document.expenses.find((expense) => expense.id === id);
+
+  const data = {
+    title: expense.title,
+    price: expense.price,
+    description: expense.description,
+    date: expense.date,
+    category: expense.categoryId,
+    account: expense.accountId,
+  };
+
+  res.json(data);
+});
+
 router.get("/api/expenses/listTransform", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
 
@@ -33,13 +52,28 @@ router.get("/api/expenses/listTransform", isAuthenticated, async (req, res) => {
   });
 
   const expenses = document.expenses.map((expense) => {
-    const category = categories.categories.find(
+    let category = categories.categories.find(
       (category) => category.id === expense.categoryId
     );
 
-    const account = accounts.accounts.find(
+    if (!category) {
+      category = {
+        title: "DELETED",
+        color: "#ccc",
+        icon: "fas fa-trash-alt",
+      };
+    }
+
+    let account = accounts.accounts.find(
       (account) => account.id === expense.accountId
     );
+
+    if (!account) {
+      account = {
+        title: "DELETED",
+        color: "#ccc",
+      };
+    }
 
     let date = formatDate(expense.date);
 
@@ -49,9 +83,11 @@ router.get("/api/expenses/listTransform", isAuthenticated, async (req, res) => {
       price: expense.price,
       date: date.day,
       time: date.time,
+      categoryId: expense.categoryId,
       category: category.title,
       icon: category.icon,
       color: category.color,
+      accountId: expense.accountId,
       account: account.title,
       accountColor: account.color,
       description: expense.description,
@@ -95,8 +131,8 @@ router.put("/api/expense", isAuthenticated, async (req, res) => {
     (category) => category.id === req.body.categoryId
   );
 
-  if(!accountDocument.accounts[accountIndex].noBalance){
-    if(accountDocument.accounts[accountIndex].balance < price){
+  if (!accountDocument.accounts[accountIndex].noBalance) {
+    if (accountDocument.accounts[accountIndex].balance < price) {
       return res.status(401).json({
         message: "No hay suficiente saldo en la cuenta seleccionada",
       });

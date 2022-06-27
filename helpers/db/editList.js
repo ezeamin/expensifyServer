@@ -62,9 +62,11 @@ const editList = async (type, dni, id, newData, res) => {
         if (err) {
           res.status(401).json(err);
         }
-
-        res.status(200).json(info);
       });
+
+      //TODO si se modifica expense, debe modificarse el balance de la cuenta y de la categoria!!!!!!!!!!!!!!
+
+      res.status(200).json(info);
     }
   );
 };
