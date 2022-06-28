@@ -18,8 +18,6 @@ const userAccountSchema = new Schema({
     type: String,
     unique: true,
   },
-  spent: Number,
-  generalBalance: Number,
   generalLimit: Number,
   accounts: [accountSchema],
 });

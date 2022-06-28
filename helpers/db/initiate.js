@@ -9,12 +9,12 @@ const DbOld = require("../../models/period");
 
 //debts,payments
 
-const initiateUser = async (dni) => {
+const initiateUser = async (dni, limit) => {
   const account = new DbAccounts({
     dni,
     spent: 0,
     generalBalance: 0,
-    generalLimit: 0,
+    generalLimit: limit,
     accounts: [],
   });
 

@@ -11,12 +11,15 @@ const DbAccounts = require("../../models/account");
 const editList = require("../../helpers/db/editList");
 const resetSpent = require("../../helpers/db/resetSpent");
 const generateColor = require("../../helpers/generateColor");
+const dataSorterByTitle = require("../../helpers/dataSorterByTitle");
 
 router.get("/api/accounts", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
 
   const accounts = await DbAccounts.findOne({ dni });
-  res.json(accounts);
+  const sortedAccounts = accounts.accounts.sort(dataSorterByTitle);
+
+  res.json({accounts: sortedAccounts});
 });
 
 router.get("/api/account/:id", isAuthenticated, async (req, res) => {

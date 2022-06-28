@@ -57,18 +57,20 @@ const validar = (datos) => {
         break;
       }
       case "days":
-        if(valor < 1 || valor > 31) return false;
+        if (valor < 1 || valor > 31) return false;
         break;
       case "account":
       case "originAccount":
       case "destinationAccount":
       case "category":
-        if (valor === "0") { //prueba al pedo con los nuevos select de mui
+        if (valor === "0") {
+          //prueba al pedo con los nuevos select de mui
           return false;
         }
         break;
       case "paymentDate":
-        if(!Object.keys(datos).includes("id") && !checkPayment(valor)) return false;
+        if (!Object.keys(datos).includes("id") && !checkPayment(valor))
+          return false;
         break;
       default:
         break;
@@ -76,7 +78,7 @@ const validar = (datos) => {
   }
 
   return true;
-}
+};
 
 const validateString = (str) => {
   const re = /^[A-Za-z\sáéíóú]+$/;
@@ -91,11 +93,24 @@ const checkPayment = (date) => {
 
   let currentDate = new Date();
 
-  if(year < currentDate.getFullYear() || month > 12 || day > 31 || month < 1 || day < 1) return false;
+  if (
+    year < currentDate.getFullYear() ||
+    month > 12 ||
+    day > 31 ||
+    month < 1 ||
+    day < 1
+  )
+    return false;
 
-  if(month < currentDate.getMonth() + 1 && year === currentDate.getFullYear()) return false;
+  if (month < currentDate.getMonth() + 1 && year === currentDate.getFullYear())
+    return false;
 
-  if(day < currentDate.getDate() && year === currentDate.getFullYear() && month === currentDate.getMonth() + 1) return false;
+  if (
+    day < currentDate.getDate() &&
+    year === currentDate.getFullYear() &&
+    month === currentDate.getMonth() + 1
+  )
+    return false;
 
   return true;
 };

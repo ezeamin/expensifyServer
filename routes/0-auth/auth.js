@@ -10,6 +10,7 @@ const initiateDbUsers = require("../../helpers/db/initiate");
 
 const DbUsers = require("../../models/user");
 const DbTokens = require("../../models/token");
+const DbAccounts = require("../../models/account");
 const { generateAccessToken } = require("../../helpers/tokens");
 const generarCodigo = require("../../helpers/generarCodigo");
 
@@ -57,7 +58,7 @@ router.post("/api/signup", async (req, res) => {
 
       await user.save();
 
-      await initiateDbUsers(req.body.dni);
+      await initiateDbUsers(req.body.dni, req.body.limit);
 
       return res.sendStatus(200);
     } catch (error) {
@@ -233,9 +234,9 @@ router.delete("/api/logout", (req, res) => {
   });
 });
 
-router.get("/api/ping", (req,res) => {
+router.get("/api/ping", (req, res) => {
   return res.sendStatus(200);
-})
+});
 
 router.get("/api/auth", isAuthenticated, (req, res) => {
   res.status(200).json({
@@ -246,6 +247,44 @@ router.get("/api/auth", isAuthenticated, (req, res) => {
       incorporation: req.user.incorporation,
     },
   });
+});
+
+router.get("/api/user", isAuthenticated, (req, res) => {
+  let saldo = 0;
+
+  DbAccounts.findOne(
+    {
+      dni: req.user.dni,
+    },
+    (err, info) => {
+      if (err) {
+        return res.status(500).json({
+          message: "Error al obtener saldo",
+          extra: err,
+        });
+      }
+
+      if (info.length === 0) {
+        return res.status(500).json({
+          message: "Error al obtener saldo",
+        });
+      }
+
+      saldo = info.accounts.reduce((acc, cur) => acc + cur.balance, 0);
+
+      const data = {
+        name: req.user.name,
+        dni: req.user.dni,
+        email: req.user.email,
+        incorporation: req.user.incorporation,
+        saldo,
+      };
+
+      // TODO: agregar valores de limite y trabajar con ellos
+
+      res.status(200).json(data);
+    }
+  );
 });
 
 module.exports = router;

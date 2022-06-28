@@ -27,6 +27,8 @@ const updateAccountValues = (dni, oldData, type) => {
         account.spent -= oldData.price;
       } else if (type === "income") {
         account.balance -= oldData.price;
+
+        info.totalIncome -= oldData.price;
       }
 
       await info.save((err) => {

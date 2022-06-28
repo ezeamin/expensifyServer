@@ -73,8 +73,6 @@ router.put("/api/income", isAuthenticated, async (req, res) => {
     const newBalance = accountDocument.accounts[accountIndex].balance + price;
     accountDocument.accounts[accountIndex].balance = newBalance;
 
-    accountDocument.generalBalance += price;
-
     await accountDocument.save();
   }
 

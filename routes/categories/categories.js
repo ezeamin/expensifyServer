@@ -10,12 +10,15 @@ const generateColor = require("../../helpers/generateColor");
 
 const DbCategories = require("../../models/category");
 const editList = require("../../helpers/db/editList");
+const dataSorterByTitle = require("../../helpers/dataSorterByTitle");
 
 router.get("/api/categories", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
 
   const categories = await DbCategories.findOne({ dni });
-  res.status(200).json(categories);
+  const sortedCategories = categories.categories.sort(dataSorterByTitle);
+
+  res.status(200).json({ categories: sortedCategories });
 });
 
 router.get("/api/category/:id", isAuthenticated, async (req, res) => {

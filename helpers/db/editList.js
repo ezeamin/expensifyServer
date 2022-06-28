@@ -81,8 +81,6 @@ const editList = async (type, dni, id, data, res) => {
         }
       });
 
-      //TODO: si se modifica expense, debe modificarse el balance de la cuenta y de la categoria!!!!!!!!!!!!!!
-
       res.status(200).json(info);
     }
   );
@@ -179,8 +177,11 @@ const updateAccountValues = (dni, data, type) => {
       } else if (type === "income") {
         oldAccount.balance -= data.old.price;
         newAccount.balance += data.new.price;
-      }
 
+        info.totalIncome -= data.old.price;
+        info.totalIncome += data.new.price;
+      }
+     
       await info.save((err) => {
         if (err) {
           console.log(err);
