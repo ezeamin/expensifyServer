@@ -12,6 +12,7 @@ const DbAccounts = require("../../models/account");
 const editList = require("../../helpers/db/editList");
 const formatDate = require("../../helpers/formatDate");
 const roundToTwo = require("../../helpers/roundToTwo");
+const updateAccountValues = require("../../helpers/db/updateAccountValues");
 
 router.get("/api/incomes", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
@@ -19,7 +20,6 @@ router.get("/api/incomes", isAuthenticated, async (req, res) => {
   const document = await DbIncomes.findOne({ dni });
   res.json(document);
 });
-
 
 router.get("/api/income/:id", isAuthenticated, async (req, res) => {
   const id = req.params.id;
@@ -69,7 +69,7 @@ router.put("/api/income", isAuthenticated, async (req, res) => {
     (account) => account.id === req.body.accountId
   );
 
-  if(!accountDocument.accounts[accountIndex].noBalance){
+  if (!accountDocument.accounts[accountIndex].noBalance) {
     const newBalance = accountDocument.accounts[accountIndex].balance + price;
     accountDocument.accounts[accountIndex].balance = newBalance;
 
@@ -144,8 +144,13 @@ router.put("/api/income/:id", isAuthenticated, async (req, res) => {
   editList("income", dni, req.params.id, req.body, res);
 });
 
-router.delete("/api/income/:id", isAuthenticated, (req, res) => {
+router.delete("/api/income/:id", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+
+  const document = await DbAccounts.findOne({ dni });
+  const oldData = document.accounts.find(
+    (account) => account.id === req.params.id
+  );
 
   DbIncomes.findOneAndUpdate(
     { dni },
@@ -164,6 +169,7 @@ router.delete("/api/income/:id", isAuthenticated, (req, res) => {
         });
       }
 
+      updateAccountValues(dni, oldData, "account");
       res.status(200).json(incomes);
     }
   );

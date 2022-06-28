@@ -13,6 +13,8 @@ const DbAccounts = require("../../models/account");
 const editList = require("../../helpers/db/editList");
 const formatDate = require("../../helpers/formatDate");
 const roundToTwo = require("../../helpers/roundToTwo");
+const updateCategoryValues = require("../../helpers/db/updateCategoryValues");
+const updateAccountValues = require("../../helpers/db/updateAccountValues");
 
 router.get("/api/expenses", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
@@ -186,8 +188,13 @@ router.put("/api/expense/:id", isAuthenticated, async (req, res) => {
   editList("expense", dni, req.params.id, req.body, res);
 });
 
-router.delete("/api/expense/:id", isAuthenticated, (req, res) => {
+router.delete("/api/expense/:id", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+
+  const document = await DbExpenses.findOne({ dni });
+  const oldData = document.expenses.find(
+    (expense) => expense.id === req.params.id
+  );
 
   DbExpenses.findOneAndUpdate(
     { dni },
@@ -206,6 +213,8 @@ router.delete("/api/expense/:id", isAuthenticated, (req, res) => {
         });
       }
 
+      updateAccountValues(dni, oldData, "expense");
+      updateCategoryValues(dni, oldData);
       res.status(200).json(expenses);
     }
   );
