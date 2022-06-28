@@ -20,6 +20,25 @@ router.get("/api/incomes", isAuthenticated, async (req, res) => {
   res.json(document);
 });
 
+
+router.get("/api/income/:id", isAuthenticated, async (req, res) => {
+  const id = req.params.id;
+  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+
+  const document = await DbIncomes.findOne({ dni });
+  const income = document.incomes.find((income) => income.id === id);
+
+  const data = {
+    title: income.title,
+    price: income.price,
+    description: income.description,
+    date: income.date,
+    accountId: income.accountId,
+  };
+
+  res.json(data);
+});
+
 router.put("/api/income", isAuthenticated, async (req, res) => {
   if (!validar(req.body) || !validarKeys("newIncome", req.body)) {
     res.status(401).json({

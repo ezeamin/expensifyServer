@@ -111,15 +111,29 @@ router.get(
     });
 
     const transfers = document.transfers.map((transfer) => {
-      const originAccount = accounts.accounts.find(
+      let originAccount = accounts.accounts.find(
         (account) => account.id === transfer.originAccountId
       );
 
-      const destinationAccount = accounts.accounts.find(
+      let destinationAccount = accounts.accounts.find(
         (account) => account.id === transfer.destinationAccountId
       );
 
       let date = formatDate(transfer.date);
+
+      if (!originAccount) {
+        originAccount = {
+          title: "DELETED",
+          color: "#ccc",
+        };
+      }
+
+      if (!destinationAccount) {
+        destinationAccount = {
+          title: "DELETED",
+          color: "#ccc",
+        };
+      }
 
       return {
         id: transfer.id,
