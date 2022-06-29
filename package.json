@@ -1,6 +1,6 @@
 {
   "name": "expensifyserver",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Back End for Expensify App",
   "main": "server.js",
   "jest": {
