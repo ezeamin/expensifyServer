@@ -1,16 +1,6 @@
 const mongoose = require("mongoose");
+const { transferSchema } = require("./schemas");
 const { Schema } = mongoose;
-
-const transferSchema = new Schema({
-  id: String,
-  date: Date,
-  time: String,
-  price: Number,
-  description: String,
-  originAccountId: String,
-  destinationAccountId: String,
-  modified: Boolean,
-});
 
 const userTransferSchema = new Schema({
   dni: {
@@ -21,3 +11,4 @@ const userTransferSchema = new Schema({
 });
 
 module.exports = mongoose.model("Transfers", userTransferSchema);
+

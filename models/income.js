@@ -1,15 +1,6 @@
 const mongoose = require("mongoose");
+const { incomeSchema } = require("./schemas");
 const { Schema } = mongoose;
-
-const incomeSchema = new Schema({
-  id: String,
-  title: String,
-  date: Date,
-  price: Number,
-  description: String,
-  accountId: String,
-  modified: Boolean,
-});
 
 const userIncomeSchema = new Schema({
   dni: {
@@ -21,3 +12,4 @@ const userIncomeSchema = new Schema({
 });
 
 module.exports = mongoose.model("Incomes", userIncomeSchema);
+

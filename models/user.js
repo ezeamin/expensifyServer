@@ -31,6 +31,10 @@ const userSchema = new Schema({
     type: Date,
     required: true,
   },
+  currentPeriod: {
+    type: Number,
+    required: true,
+  },
 });
 
 userSchema.methods.encryptPassword = (password) => {

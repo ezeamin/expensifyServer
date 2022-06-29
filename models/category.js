@@ -1,15 +1,6 @@
 const mongoose = require("mongoose");
+const { categorySchema } = require("./schemas");
 const { Schema } = mongoose;
-
-const categorySchema = new Schema({
-  id: String,
-  title: String,
-  icon: String,
-  limit: Number,
-  spent: Number,
-  color: String,
-  description: String,
-});
 
 const userCategorySchema = new Schema({
   dni: {

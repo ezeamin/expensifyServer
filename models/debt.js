@@ -1,30 +1,6 @@
 const mongoose = require("mongoose");
+const { otherDebtSchema, userDebtSchema } = require("./schemas");
 const { Schema } = mongoose;
-
-const userDebtSchema = new Schema({
-  id: String,
-  lenderName: String,
-  debts: [{
-    id: String,
-    destinationAccountId: String, // not mandatory
-    date: Date,
-    price: Number,
-    description: String,
-    modified: Boolean,
-  }],
-});
-
-const otherDebtSchema = new Schema({
-    id: String,
-    debtorName: String,
-    debts: [{
-        id: String,
-        originAccountId: String, // not mandatory
-        date: Date,
-        price: Number,
-        description: String,
-    }],
-});
 
 const userDebtsSchema = new Schema({
   dni: {

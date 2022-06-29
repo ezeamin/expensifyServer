@@ -1,17 +1,6 @@
 const mongoose = require("mongoose");
+const { paymentSchema } = require("./schemas");
 const { Schema } = mongoose;
-
-const paymentSchema = new Schema({
-  id: String,
-  title: String,
-  categoryId: String,
-  accountId: String,
-  date: Date,
-  paymentDate: Date,
-  price: Number,
-  description: String,
-  modified: Boolean,
-});
 
 const userPaymentSchema = new Schema({
   dni: {
@@ -22,3 +11,4 @@ const userPaymentSchema = new Schema({
 });
 
 module.exports = mongoose.model("Payments", userPaymentSchema);
+
