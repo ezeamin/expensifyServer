@@ -83,36 +83,6 @@ router.put("/api/category/:id", isAuthenticated, (req, res) => {
   editList("category", dni, req.params.id, req.body, res);
 });
 
-//reset spent of all categories
-router.put("/api/categories/reset", isAuthenticated, (req, res) => {
-  DbCategories.findOne(
-    {
-      dni: process.env.NODE_ENV === "test" ? req.body.dni : req.user.dni,
-    },
-    (err, category) => {
-      if (err) {
-        return res.status(401).json({
-          err,
-        });
-      }
-
-      category.categories.forEach((category) => {
-        category.spent = 0;
-      });
-
-      category.save((err) => {
-        if (err) {
-          return res.status(401).json({
-            err,
-          });
-        }
-
-        res.sendStatus(200);
-      });
-    }
-  );
-});
-
 router.delete("/api/category/:id", isAuthenticated, (req, res) => {
   DbCategories.findOne(
     {
