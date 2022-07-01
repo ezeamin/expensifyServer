@@ -141,10 +141,10 @@ router.put("/api/expense", isAuthenticated, async (req, res) => {
     }
 
     accountDocument.accounts[accountIndex].balance -= price;
-    accountDocument.accounts[accountIndex].spent += price;
-
-    await accountDocument.save();
   }
+
+  accountDocument.accounts[accountIndex].spent += price;
+  await accountDocument.save();
 
   categoryDocument.categories[categoryIndex].spent += price;
   await categoryDocument.save();

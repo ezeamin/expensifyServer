@@ -62,17 +62,11 @@ const editList = async (type, dni, id, data, res) => {
       }
 
       if (type === "account") {
-        if (data.balance === 0) {
-          info[listName][infoPosition].noBalance = true;
-        } else {
-          info[listName][infoPosition].noBalance = false;
-        }
+        info[listName][infoPosition].noBalance =
+          Number.parseFloat(data.noBalance) === 0;
       } else if (type === "category") {
-        if (data.limit === 0) {
-          info[listName][infoPosition].noLimit = true;
-        } else {
-          info[listName][infoPosition].noLimit = false;
-        }
+        info[listName][infoPosition].noLimit =
+          Number.parseFloat(data.limit) === 0;
       }
 
       await info.save((err) => {
@@ -181,7 +175,7 @@ const updateAccountValues = (dni, data, type) => {
         info.totalIncome -= data.old.price;
         info.totalIncome += data.new.price;
       }
-     
+
       await info.save((err) => {
         if (err) {
           console.log(err);
