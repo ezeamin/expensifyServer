@@ -109,7 +109,7 @@ router.put("/api/period", isAuthenticated, async (req, res) => {
     }
 
     resetSpent("account", dni);
-    resetSpent("categories", dni);
+    resetSpent("category", dni);
 
     resetTables(dni);
     resetPayments(dni);
