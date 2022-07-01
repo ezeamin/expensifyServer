@@ -1,8 +1,6 @@
 const express = require("express");
 const router = express.Router();
 
-const validar = require("../../helpers/validar");
-const validarKeys = require("../../helpers/validarKeys");
 const isAuthenticated = require("../../helpers/isAuthenticated");
 //const addNewMonth = require("../../helpers/addNewMonth");
 
@@ -15,6 +13,9 @@ const DbIncomes = require("../../models/income");
 const DbTransfers = require("../../models/transfer");
 
 const daysInMonth = require("../../helpers/daysInMonth");
+const resetSpent = require("../../helpers/db/resetSpent");
+const resetTables = require("../../helpers/db/resetTables");
+const resetPayments = require("../../helpers/db/resetPayments");
 
 router.get("/api/isNewMonth", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
@@ -106,6 +107,12 @@ router.put("/api/period", isAuthenticated, async (req, res) => {
         err,
       });
     }
+
+    resetSpent("account", dni);
+    resetSpent("categories", dni);
+
+    resetTables(dni);
+    resetPayments(dni);
 
     return res.status(200).json(old);
   });

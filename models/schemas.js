@@ -83,6 +83,7 @@ const paymentSchema = new Schema({
   price: Number,
   description: String,
   modified: Boolean,
+  paid: Boolean,
 });
 
 const transferSchema = new Schema({
