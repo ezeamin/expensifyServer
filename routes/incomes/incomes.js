@@ -87,6 +87,8 @@ router.put("/api/income", isAuthenticated, async (req, res) => {
     description: req.body.description,
   });
 
+  document.totalIncome += price;
+
   await document.save((err) => {
     if (err) {
       return res.status(401).json({

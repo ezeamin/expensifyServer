@@ -87,13 +87,13 @@ router.put("/api/period", isAuthenticated, async (req, res) => {
     start: new Date(year, month, 1),
     end: new Date(year, month, daysInMonth(month, year)),
     days: daysInMonth(month, year),
+    balance,
     spent: spent,
     income: incomesDoc.totalIncome,
-    balance,
     incomes: incomesDoc.incomes,
     expenses: expensesDoc.expenses,
     transfers: transfersDoc.transfers,
-    account: accountsDoc.accounts,
+    accounts: accountsDoc.accounts,
     categories: categoriesDoc.categories,
   };
 
