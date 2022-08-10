@@ -17,6 +17,7 @@ const routesTransfers = require("./routes/transfers/transfers");
 const routesDebts = require("./routes/debts/debts");
 const routesPayments = require("./routes/payments/payments");
 const routesPeriods = require("./routes/periods/periods");
+const routesCharts = require("./routes/charts/charts");
 
 //settings
 app.set("port", process.env.PORT || 5000);
@@ -43,6 +44,7 @@ app.use(routesTransfers);
 app.use(routesDebts);
 app.use(routesPayments);
 app.use(routesPeriods);
+app.use(routesCharts);
 
 /*app.route("*").get((req, res) => {
   res.sendFile(__dirname + "/public/index.html");

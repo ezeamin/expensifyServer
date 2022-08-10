@@ -80,8 +80,8 @@ router.post("/api/signin", async (req, res) => {
     return;
   }
 
-  const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.split(" ")[1];
+  // const authHeader = req.headers.authorization;
+  // const token = authHeader && authHeader.split(" ")[1];
 
   // if (token && token.length >= 10) { //TODO: revisar
   //   //null & undefined

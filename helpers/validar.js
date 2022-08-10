@@ -50,7 +50,6 @@ const validar = (datos) => {
           return false;
         }
         break;
-      case "limit":
       case "price": {
         if (!/^\d+\.?\d*$/i.test(valor) || Number.parseFloat(valor) === 0) {
           return false;
