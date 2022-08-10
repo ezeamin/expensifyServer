@@ -57,6 +57,10 @@ router.put("/api/period", isAuthenticated, async (req, res) => {
   let month = new Date().getMonth() - 1;
   let year = new Date().getFullYear();
 
+  const user = DbUsers.findOne({dni})
+  const incorporationDate = new Date(user.incorporation);
+  if(incorporationDate.getMonth() === (new Date()).getMonth()) return res.sendStatus(304);
+
   if (month === -1) {
     month = 11;
     year--;

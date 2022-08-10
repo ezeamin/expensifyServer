@@ -22,6 +22,20 @@ router.get("/api/accounts", isAuthenticated, async (req, res) => {
   res.json({accounts: sortedAccounts});
 });
 
+router.get("/api/accounts/spentAndList", isAuthenticated, async (req, res) => {
+  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+
+  const accounts = await DbAccounts.findOne({ dni });
+  const spent = Number.parseFloat(accounts.accounts.reduce((acc, cur) => acc + cur.spent, 0));
+
+  const accountsList = accounts.accounts.map(acc => (
+    {title: acc.title,spent: acc.spent, mean: Math.round((Number.parseFloat(acc.spent) * 100)/spent || 0)}
+  ))
+
+  accountsList.sort((a,b) => b.spent - a.spent);
+  res.json({spent,accountsList} || {spent: 0,accountsList: []});
+});
+
 router.get("/api/account/:id", isAuthenticated, async (req, res) => {
   const id = req.params.id;
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
@@ -32,12 +46,30 @@ router.get("/api/account/:id", isAuthenticated, async (req, res) => {
   res.json(account);
 });
 
-router.put("/api/account", isAuthenticated, (req, res) => {
+router.get("/api/accounts/limit", isAuthenticated, async (req, res) => {
+  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+
+  const accountsDoc = await DbAccounts.findOne({ dni });
+
+  res.json({limit: accountsDoc.generalLimit});
+});
+
+router.put("/api/account", isAuthenticated, async (req, res) => {
   req.body.color = generateColor();
 
   if (!validar(req.body) || !validarKeys("newAccount", req.body)) {
     res.status(401).json({
       message: "Datos inválidos",
+    });
+    return;
+  }
+
+  const accountDoc = await DbAccounts.findOne({dni: req.user.dni})
+  const existingAccount = accountDoc.accounts.filter(acc => acc.title === req.body.title)[0];
+
+  if(existingAccount){
+    res.status(401).json({
+      message: "Ya existe una cuenta con este nombre",
     });
     return;
   }
@@ -58,6 +90,32 @@ router.put("/api/account", isAuthenticated, (req, res) => {
           noBalance: Number.parseFloat(req.body.balance) === 0,
         },
       },
+    },
+    { new: true },
+    (err, account) => {
+      if (err) {
+        return res.status(401).json({
+          err,
+        });
+      }
+
+      res.status(200).json(account);
+    }
+  );
+});
+
+router.put("/api/account/generalLimit", isAuthenticated, async (req, res) => {
+  if (!validar(req.body) || !validarKeys("newLimit", req.body)) {
+    res.status(401).json({
+      message: "Datos inválidos",
+    });
+    return;
+  }
+
+  DbAccounts.findOneAndUpdate(
+    { dni: process.env.NODE_ENV === "test" ? req.body.dni : req.user.dni },
+    {
+      generalLimit: req.body.limit
     },
     { new: true },
     (err, account) => {

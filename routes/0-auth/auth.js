@@ -83,12 +83,12 @@ router.post("/api/signin", async (req, res) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1];
 
-  if (token && token.length >= 10) {
-    //null & undefined
-    return res.status(401).json({
-      message: "Usuario ya autenticado", //multiples dispositivos?
-    });
-  }
+  // if (token && token.length >= 10) { //TODO: revisar
+  //   //null & undefined
+  //   return res.status(401).json({
+  //     message: "Usuario ya autenticado", //multiples dispositivos?
+  //   });
+  // }
 
   const user = await DbUsers.findOne({ dni: req.body.dni });
 
