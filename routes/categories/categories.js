@@ -65,7 +65,7 @@ router.put("/api/category", isAuthenticated, async (req, res) => {
           limit: req.body.limit,
           color: req.body.color,
           spent: 0,
-          description: req.body.description,
+          description: req.body.description.trim(),
           noLimit: Number.parseFloat(req.body.limit) === 0,
         },
       },

@@ -89,7 +89,7 @@ router.put("/api/income", isAuthenticated, async (req, res) => {
     accountId: req.body.accountId,
     date: req.body.date,
     price: price,
-    description: req.body.description,
+    description: req.body.description.trim(),
   });
 
   document.totalIncome += price;

@@ -83,7 +83,7 @@ router.put("/api/transfer", isAuthenticated, async (req, res) => {
     destinationAccountId: req.body.destinationAccountId,
     date: new Date(),
     price: price,
-    description: req.body.description,
+    description: req.body.description.trim(),
   });
 
   await document.save((err) => {

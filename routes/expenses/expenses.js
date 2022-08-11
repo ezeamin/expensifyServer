@@ -158,7 +158,7 @@ router.put("/api/expense", isAuthenticated, async (req, res) => {
     accountId: req.body.accountId,
     date: req.body.date,
     price: price,
-    description: req.body.description,
+    description: req.body.description.trim(),
   });
 
   await document.save((err) => {

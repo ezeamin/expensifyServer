@@ -22,6 +22,8 @@ const switchFunction = (type) => {
 const editList = async (type, dni, id, data, res) => {
   const { db, listName } = switchFunction(type);
 
+  if(data.new?.description) data.new.description = data.new.description.trim();
+
   db.findOne(
     {
       dni,

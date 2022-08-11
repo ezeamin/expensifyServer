@@ -46,7 +46,7 @@ router.put("/api/payment", isAuthenticated, async (req, res) => {
     date: new Date(),
     paymentDate: new Date(req.body.paymentDate),
     price: req.body.price,
-    description: req.body.description,
+    description: req.body.description.trim(),
   });
 
   document.save((err) => {

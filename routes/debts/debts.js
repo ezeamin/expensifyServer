@@ -60,7 +60,7 @@ router.put("/api/debt/:type", isAuthenticated, async (req, res) => {
         destinationAccountId: req.body.destinationAccountId,
         date: new Date(),
         price: req.body.price,
-        description: req.body.description,
+        description: req.body.description.trim(),
       });
     } else {
       // primer prestamo de este prestador
@@ -73,7 +73,7 @@ router.put("/api/debt/:type", isAuthenticated, async (req, res) => {
         destinationAccountId: req.body.destinationAccountId,
         date: new Date(),
         price: req.body.price,
-        description: req.body.description,
+        description: req.body.description.trim(),
       });
     }
   } else {
@@ -90,7 +90,7 @@ router.put("/api/debt/:type", isAuthenticated, async (req, res) => {
         originAccountId: req.body.originAccountId,
         date: new Date(),
         price: req.body.price,
-        description: req.body.description,
+        description: req.body.description.trim(),
       });
     } else {
       // primer prestamo a este deudor
@@ -103,7 +103,7 @@ router.put("/api/debt/:type", isAuthenticated, async (req, res) => {
         originAccountId: req.body.originAccountId,
         date: new Date(),
         price: req.body.price,
-        description: req.body.description,
+        description: req.body.description.trim(),
       });
     }
   }

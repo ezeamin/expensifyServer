@@ -16,6 +16,7 @@ const daysInMonth = require("../../helpers/daysInMonth");
 const resetSpent = require("../../helpers/db/resetSpent");
 const resetTables = require("../../helpers/db/resetTables");
 const resetPayments = require("../../helpers/db/resetPayments");
+const roundToTwo = require("../../helpers/roundToTwo");
 
 router.get("/api/isNewMonth", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
@@ -54,17 +55,13 @@ router.get("/api/periods", isAuthenticated, async (req, res) => {
 
 router.put("/api/period", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
-  let month = new Date().getMonth() - 1;
+  let month = new Date().getMonth(); // from 0 to 11
   let year = new Date().getFullYear();
 
-  const user = DbUsers.findOne({dni})
+  const user = await DbUsers.findOne({ dni });
   const incorporationDate = new Date(user.incorporation);
-  if(incorporationDate.getMonth() === (new Date()).getMonth()) return res.sendStatus(304);
-
-  if (month === -1) {
-    month = 11;
-    year--;
-  }
+  if (incorporationDate.getMonth() !== new Date().getMonth())
+    return res.sendStatus(304);
 
   const old = await DbPeriod.findOne({ dni });
   if (!old) {
@@ -92,9 +89,10 @@ router.put("/api/period", isAuthenticated, async (req, res) => {
     start: new Date(year, month, 1),
     end: new Date(year, month, daysInMonth(month, year)),
     days: daysInMonth(month, year),
-    balance,
-    spent: spent,
-    income: incomesDoc.totalIncome,
+    balance: roundToTwo(balance),
+    spent: roundToTwo(spent),
+    income: roundToTwo(incomesDoc.totalIncome),
+    limit: accountsDoc.generalLimit,
     incomes: incomesDoc.incomes,
     expenses: expensesDoc.expenses,
     transfers: transfersDoc.transfers,

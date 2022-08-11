@@ -32,7 +32,7 @@ router.post("/api/signup", async (req, res) => {
     });
   }
 
-  const exists = await DbUsers.exists({ email: req.body.email });
+  const exists = await DbUsers.exists({ email: req.body.email.trim() });
   const existsDni = await DbUsers.exists({ dni: req.body.dni });
 
   if (exists) {
@@ -46,9 +46,9 @@ router.post("/api/signup", async (req, res) => {
   } else {
     try {
       const user = new DbUsers({
-        email: req.body.email,
-        password: req.body.password,
-        name: req.body.name,
+        email: req.body.email.trim(),
+        password: req.body.password.trim(),
+        name: req.body.name.trim(),
         dni: req.body.dni,
         recCode: generarCodigo(15),
         incorporation: new Date(),
@@ -95,7 +95,7 @@ router.post("/api/signin", async (req, res) => {
   if (!user) {
     return res.status(401).json({ message: "DNI no registrado" });
   }
-  if (!user.comparePassword(req.body.password, user.password)) {
+  if (!user.comparePassword(req.body.password.trim(), user.password)) {
     return res.status(401).json({ message: "Contraseña incorrecta" });
   }
 

@@ -94,7 +94,7 @@ router.put("/api/account", isAuthenticated, async (req, res) => {
           accountType: req.body.accountType,
           balance: req.body.balance,
           spent: 0,
-          description: req.body.description,
+          description: req.body.description.trim(),
           noBalance: Number.parseFloat(req.body.balance) === 0,
         },
       },
