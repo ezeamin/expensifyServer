@@ -19,21 +19,25 @@ router.get("/api/accounts", isAuthenticated, async (req, res) => {
   const accounts = await DbAccounts.findOne({ dni });
   const sortedAccounts = accounts.accounts.sort(dataSorterByTitle);
 
-  res.json({accounts: sortedAccounts});
+  res.json({ accounts: sortedAccounts });
 });
 
 router.get("/api/accounts/spentAndList", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
 
   const accounts = await DbAccounts.findOne({ dni });
-  const spent = Number.parseFloat(accounts.accounts.reduce((acc, cur) => acc + cur.spent, 0));
+  const spent = Number.parseFloat(
+    accounts.accounts.reduce((acc, cur) => acc + cur.spent, 0)
+  );
 
-  const accountsList = accounts.accounts.map(acc => (
-    {title: acc.title,spent: acc.spent, mean: Math.round((Number.parseFloat(acc.spent) * 100)/spent || 0)}
-  ))
+  const accountsList = accounts.accounts.map((acc) => ({
+    title: acc.title,
+    spent: acc.spent,
+    mean: Math.round((Number.parseFloat(acc.spent) * 100) / spent || 0),
+  }));
 
-  accountsList.sort((a,b) => b.spent - a.spent);
-  res.json({spent,accountsList} || {spent: 0,accountsList: []});
+  accountsList.sort((a, b) => b.spent - a.spent);
+  res.json({ spent, accountsList } || { spent: 0, accountsList: [] });
 });
 
 router.get("/api/account/:id", isAuthenticated, async (req, res) => {
@@ -51,7 +55,7 @@ router.get("/api/accounts/limit", isAuthenticated, async (req, res) => {
 
   const accountsDoc = await DbAccounts.findOne({ dni });
 
-  res.json({limit: accountsDoc.generalLimit});
+  res.json({ limit: accountsDoc.generalLimit });
 });
 
 router.put("/api/account", isAuthenticated, async (req, res) => {
@@ -64,10 +68,14 @@ router.put("/api/account", isAuthenticated, async (req, res) => {
     return;
   }
 
-  const accountDoc = await DbAccounts.findOne({dni: req.user.dni})
-  const existingAccount = accountDoc.accounts.filter(acc => acc.title === req.body.title)[0];
+  const accountDoc = await DbAccounts.findOne({ dni: req.user.dni });
+  const existingAccount = accountDoc.accounts.filter(
+    (acc) =>
+      acc.title.trim().toLowerCase() === req.body.title.trim().toLowerCase()
+  )[0];
 
-  if(existingAccount){
+  console.log(existingAccount);
+  if (existingAccount) {
     res.status(401).json({
       message: "Ya existe una cuenta con este nombre",
     });
@@ -115,7 +123,7 @@ router.put("/api/account/generalLimit", isAuthenticated, async (req, res) => {
   DbAccounts.findOneAndUpdate(
     { dni: process.env.NODE_ENV === "test" ? req.body.dni : req.user.dni },
     {
-      generalLimit: req.body.limit
+      generalLimit: req.body.limit,
     },
     { new: true },
     (err, account) => {

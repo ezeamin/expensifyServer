@@ -74,6 +74,11 @@ router.put("/api/income", isAuthenticated, async (req, res) => {
     accountDocument.accounts[accountIndex].balance = newBalance;
 
     await accountDocument.save();
+  } else {
+    res.status(401).json({
+      message: "No se puede agregar saldo a una cuenta tipo crédito",
+    });
+    return;
   }
 
   // saving income
@@ -82,7 +87,7 @@ router.put("/api/income", isAuthenticated, async (req, res) => {
     id: generarCodigo(8),
     title: stringify(req.body.title, true),
     accountId: req.body.accountId,
-    date: new Date(),
+    date: req.body.date,
     price: price,
     description: req.body.description,
   });

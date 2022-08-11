@@ -252,6 +252,7 @@ router.get("/api/auth", isAuthenticated, (req, res) => {
 
 router.get("/api/user", isAuthenticated, (req, res) => {
   let saldo = 0;
+  let spent = 0;
 
   DbAccounts.findOne(
     {
@@ -271,14 +272,19 @@ router.get("/api/user", isAuthenticated, (req, res) => {
         });
       }
 
-      saldo = info.accounts.reduce((acc, cur) => acc + cur.balance, 0);
+      info.accounts.map(acc=>{
+        saldo += acc.balance;
+        spent += acc.spent;
+      });
 
       const data = {
         name: req.user.name,
         dni: req.user.dni,
         email: req.user.email,
         incorporation: req.user.incorporation,
+        generalLimit: info.generalLimit,
         saldo,
+        spent,
       };
 
       // TODO: agregar valores de limite y trabajar con ellos

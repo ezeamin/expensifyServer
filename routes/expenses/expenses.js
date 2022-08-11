@@ -156,7 +156,7 @@ router.put("/api/expense", isAuthenticated, async (req, res) => {
     title: stringify(req.body.title, true),
     categoryId: req.body.categoryId,
     accountId: req.body.accountId,
-    date: new Date(),
+    date: req.body.date,
     price: price,
     description: req.body.description,
   });

@@ -31,12 +31,25 @@ router.get("/api/category/:id", isAuthenticated, async (req, res) => {
   res.status(200).json(category);
 });
 
-router.put("/api/category", isAuthenticated, (req, res) => {
+router.put("/api/category", isAuthenticated, async (req, res) => {
   req.body.color = generateColor();
 
   if (!validar(req.body) || !validarKeys("newCategory", req.body)) {
     res.status(401).json({
       message: "Datos inválidos",
+    });
+    return;
+  }
+
+  const categoryDoc = await DbCategories.findOne({ dni: req.user.dni });
+  const existingCategory = categoryDoc.categories.filter(
+    (acc) =>
+      acc.title.trim().toLowerCase() === req.body.title.trim().toLowerCase()
+  )[0];
+
+  if (existingCategory) {
+    res.status(401).json({
+      message: "Ya existe una categoría con este nombre",
     });
     return;
   }

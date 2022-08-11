@@ -7,6 +7,8 @@ const DbExpenses = require("../../models/expense");
 const DbIncomes = require("../../models/income");
 const DbCategories = require("../../models/category");
 const DbAccounts = require("../../models/account");
+const roundToNearestHour = require("../../helpers/roundToNearestHour");
+const getWeekDay = require("../../helpers/getWeekDay");
 
 router.get("/api/charts/chartData", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
@@ -17,7 +19,6 @@ router.get("/api/charts/chartData", isAuthenticated, async (req, res) => {
     value: category.spent,
   }));
 
-  console.log(categoriesList);
   res.status(200).json(categoriesList);
 });
 
@@ -56,6 +57,48 @@ router.get("/api/charts/dayChart", isAuthenticated, async (req, res) => {
   });
 
   list.reverse();
+  res.json(list);
+});
+
+router.get("/api/charts/weekChart", isAuthenticated, async (req, res) => {
+  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+
+  const expDocument = await DbExpenses.findOne({ dni });
+  let days = new Array(7).fill(undefined).map((el, day) => {
+    let array = [];
+    for (let i = 0; i < 12; i++) {
+      // arithmetic progression that starts in 7, but is set to 9 because array index starts at 0
+      let hour = 9 + 2 * (i - 1);
+      if (hour > 23) hour = hour % 24;
+      hour = hour + "hs"
+
+      const weekday = getWeekDay(day);
+
+      array.push({
+        hour,
+        weekday,
+        value: 0,
+      });
+    }
+    return array;
+  });
+
+  expDocument.expenses.map((exp) => {
+    const date = exp.date;
+    const day = date.getDay(); //0 - sunday
+    let hour = roundToNearestHour(date).getHours();
+
+    if (hour % 2 === 0) hour--;
+
+    const hourIndex = (hour - 9) / 2 + 1;
+    days[day][hourIndex].value += exp.price;
+  });
+
+  let list = [];
+  for (let i = 0; i < 7; i++) {
+    list = list.concat(days[i]);
+  }
+
   res.json(list);
 });
 
