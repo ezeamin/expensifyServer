@@ -67,8 +67,8 @@ router.get("/api/charts/weekChart", isAuthenticated, async (req, res) => {
   let days = new Array(7).fill(undefined).map((el, day) => {
     let array = [];
     for (let i = 0; i < 12; i++) {
-      // arithmetic progression that starts in 7, but is set to 9 because array index starts at 0
-      let hour = 9 + 2 * (i - 1);
+      // arithmetic progression that starts in 7
+      let hour = 7 + 2 * i;
       if (hour > 23) hour = hour % 24;
       hour = hour + "hs"
 
@@ -88,9 +88,11 @@ router.get("/api/charts/weekChart", isAuthenticated, async (req, res) => {
     const day = date.getDay(); //0 - sunday
     let hour = roundToNearestHour(date).getHours();
 
+    if (hour<7) hour = 24 + hour;
+
     if (hour % 2 === 0) hour--;
 
-    const hourIndex = (hour - 9) / 2 + 1;
+    const hourIndex = (hour - 7) / 2 ;
     days[day][hourIndex].value += exp.price;
   });
 
