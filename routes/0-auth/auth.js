@@ -193,7 +193,7 @@ router.get("/api/email/:dni", async (req, res) => {
     host: "smtp-mail.outlook.com",
     auth: {
       user: "expensify-arg@outlook.com",
-      pass: "expensify2022",
+      pass: process.env.EMAIL_PASSWORD,
     },
     tls: {
       rejectUnauthorized: false,
