@@ -251,9 +251,11 @@ router.get("/api/auth", isAuthenticated, (req, res) => {
   });
 });
 
-router.get("/api/user", isAuthenticated, (req, res) => {
+router.get("/api/user", isAuthenticated, async (req, res) => {
   let saldo = 0;
   let spent = 0;
+
+  const user = await DbUsers.findOne({ dni: req.user.dni });
 
   DbAccounts.findOne(
     {
@@ -286,13 +288,33 @@ router.get("/api/user", isAuthenticated, (req, res) => {
         generalLimit: info.generalLimit,
         saldo,
         spent,
+        shouldSeeStatus: user.shouldSeeStatus,
       };
-
-      // TODO: agregar valores de limite y trabajar con ellos
 
       res.status(200).json(data);
     }
   );
+});
+
+router.put("/api/user", isAuthenticated, async (req, res) => {
+  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+  const { shouldSeeStatus } = req.body;
+
+  const user = await DbUsers.findOne({ dni });
+
+  if (!user) {
+    return res.status(401).json({
+      message: "DNI no registrado",
+    });
+  }
+
+  user.shouldSeeStatus = shouldSeeStatus;
+
+  await user.save();
+
+  return res.status(200).json({
+    message: "Usuario actualizado",
+  });
 });
 
 module.exports = router;
