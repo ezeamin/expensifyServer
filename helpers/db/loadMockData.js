@@ -10,29 +10,33 @@ const DbDebts = require("../../models/debt");
 const DbPayments = require("../../models/payment");
 const DbCategories = require("../../models/category");
 const DbOlds = require("../../models/period");
+const daysInMonth = require("../daysInMonth");
 
 const clearDb = async (dni) => {
-  await DbUsers.deleteMany({dni});
-  await DbAccounts.deleteMany({dni});
-  await DbExpenses.deleteMany({dni});
-  await DbIncomes.deleteMany({dni});
-  await DbTransfers.deleteMany({dni});
-  await DbCategories.deleteMany({dni});
-  await DbOlds.deleteMany({dni});
-  await DbDebts.deleteMany({dni});
-  await DbPayments.deleteMany({dni});
+  await DbUsers.deleteMany({ dni });
+  await DbAccounts.deleteMany({ dni });
+  await DbExpenses.deleteMany({ dni });
+  await DbIncomes.deleteMany({ dni });
+  await DbTransfers.deleteMany({ dni });
+  await DbCategories.deleteMany({ dni });
+  await DbOlds.deleteMany({ dni });
+  await DbDebts.deleteMany({ dni });
+  await DbPayments.deleteMany({ dni });
+  console.log("");
   console.log("Dropped all data successfully");
 };
 
 const loadMockData = () => {
   // const user = await DbUsers.findOne({ dni });
   const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
 
   const dni = "43706393";
 
   console.clear();
-  console.log("Loading Mock Data");
+  console.log("Loading mock data");
   console.log("This process should take a while");
+  console.log("");
   clearDb(dni);
 
   setTimeout(async () => {
@@ -101,13 +105,20 @@ const loadMockData = () => {
         await categoriesDoc.save();
       }
 
-      for (let i = 0; i < 20; i++) {
+      const amountOfData = daysInMonth(currentMonth,currentYear);
+
+      for (let i = 0; i < amountOfData; i++) {
+        const date = new Date(new Date(2022, currentMonth, i));
+        const hour = (Math.random() * 23) | 0;
+        const minute = (Math.random() * 59) | 0;
+        date.setHours(hour, minute, 0, 0);
+
         const newExpense = {
           id: generarCodigo(8),
           title: `Gasto ${i}`,
           categoryId: "123456",
           accountId: "123456",
-          date: new Date(2022, currentMonth, i),
+          date,
           price: Math.round(Math.random() * 100000),
           description: `Cuenta ${i}`,
           modified: false,
@@ -119,12 +130,18 @@ const loadMockData = () => {
       }
 
       let total = 0;
-      for (let i = 0; i < 15; i++) {
+      for (let i = 0; i < amountOfData; i++) {
         const value = Math.round(Math.random() * 100000);
+
+        const date = new Date(new Date(2022, currentMonth, i));
+        const hour = (Math.random() * 23) | 0;
+        const minute = (Math.random() * 59) | 0;
+        date.setHours(hour, minute, 0, 0);
+
         const newIncome = {
           id: generarCodigo(8),
           title: `Gasto ${i}`,
-          date: new Date(2022, currentMonth, i + 10),
+          date,
           price: value,
           description: `Cuenta ${i}`,
           accountId: "123456",
@@ -154,7 +171,6 @@ const loadMockData = () => {
         transfersDoc.transfers.push(newTransfer);
 
         await transfersDoc.save();
-
       }
       console.log("");
       console.log("Loaded mock data successfully!");

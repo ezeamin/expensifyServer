@@ -33,7 +33,7 @@ router.get("/api/charts/dayChart", isAuthenticated, async (req, res) => {
   const currentDay = dt.getDate();
 
   // the array will contain as many spaces as days had passed
-  const list = new Array(currentDay).fill(undefined).map((_item, index) => ({
+  const list = new Array(31).fill(undefined).map((_item, index) => ({
     day: index + 1,
     expenses: 0,
     incomes: 0,
@@ -41,7 +41,7 @@ router.get("/api/charts/dayChart", isAuthenticated, async (req, res) => {
 
   expDocument.expenses.map((exp) => {
     const date = new Date(exp.date);
-    const day = Number.parseInt(date.toLocaleDateString().split("/")[0]);
+    const day = date.getDate();
     const value = list[day - 1].expenses;
 
     const total = value + exp.price;
