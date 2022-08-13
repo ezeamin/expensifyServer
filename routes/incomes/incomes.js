@@ -174,7 +174,7 @@ router.delete("/api/income/:id", isAuthenticated, async (req, res) => {
         });
       }
 
-      updateAccountValues(dni, oldData, "account");
+      if(document.accountId) updateAccountValues(dni, oldData, "account");
       res.status(200).json(incomes);
     }
   );

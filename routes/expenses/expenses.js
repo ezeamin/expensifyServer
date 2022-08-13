@@ -210,8 +210,8 @@ router.delete("/api/expense/:id", isAuthenticated, async (req, res) => {
         });
       }
 
-      updateAccountValues(dni, oldData, "expense");
-      updateCategoryValues(dni, oldData);
+      if(document.accountId) updateAccountValues(dni, oldData, "expense");
+      if(document.categoryId) updateCategoryValues(dni, oldData);
       res.status(200).json(expenses);
     }
   );
