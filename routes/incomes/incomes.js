@@ -137,7 +137,7 @@ router.get("/api/incomes/listTransform", isAuthenticated, async (req, res) => {
 });
 
 router.put("/api/income/:id", isAuthenticated, async (req, res) => {
-  if (!validar(req.body)) {
+  if (!validar(req.body.new)) {
     res.status(401).json({
       message: "Datos inválidos",
     });
