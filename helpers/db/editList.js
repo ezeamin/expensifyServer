@@ -38,7 +38,6 @@ const editList = async (type, dni, id, data, res) => {
         return;
       }
 
-      console.log(data);
       if (
         Object.keys(data.new).includes("price") ||
         Object.keys(data.new).includes("balance")

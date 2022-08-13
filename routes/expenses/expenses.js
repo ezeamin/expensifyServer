@@ -173,7 +173,7 @@ router.put("/api/expense", isAuthenticated, async (req, res) => {
 });
 
 router.put("/api/expense/:id", isAuthenticated, async (req, res) => {
-  if (!validar(req.body)) {
+  if (!validar(req.body.new)) {
     res.status(401).json({
       message: "Datos inválidos",
     });

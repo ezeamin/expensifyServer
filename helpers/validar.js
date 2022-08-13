@@ -72,6 +72,13 @@ const validar = (datos) => {
         if (!Object.keys(datos).includes("id") && !checkPayment(valor))
           return false;
         break;
+      case "date": {
+        const dt = new Date(valor);
+        if (dt.getMonth() !== new Date().getMonth()) return false;
+        if (dt.getFullYear() !== new Date().getFullYear()) return false;
+        if (dt.getDate() > new Date().getDate()) return false;
+        break;
+      }
       default:
         break;
     }
