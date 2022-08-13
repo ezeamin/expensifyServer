@@ -13,6 +13,7 @@ const resetTables = require("./resetTables");
 const resetPayments = require("./resetPayments");
 const daysInMonth = require("../daysInMonth");
 const roundToTwo = require("../roundToTwo");
+const generarCodigo = require("../generarCodigo");
 
 const resetAndUpdate = async (user) => {
   const dni = user.dni;
@@ -44,6 +45,7 @@ const resetAndUpdate = async (user) => {
   );
 
   const newPeriod = {
+    id: generarCodigo(8),
     start: new Date(year, month, 1),
     end: new Date(year, month, daysInMonth(month, year)),
     days: daysInMonth(month, year),

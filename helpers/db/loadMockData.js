@@ -32,6 +32,7 @@ const loadMockData = () => {
   const currentYear = new Date().getFullYear();
 
   const dni = "43706393";
+  const password = "123456aA";
 
   console.clear();
   console.log("Loading mock data");
@@ -42,22 +43,22 @@ const loadMockData = () => {
   setTimeout(async () => {
     initiate(dni, 75000);
     const newUser = new DbUsers({
-      email: "hola@gmail.com",
-      name: "Juan",
+      email: "ezequielamin@outlook.com",
+      name: "Eze",
       dni,
       recCode: "123456",
-      incorporation: new Date(),
+      incorporation: new Date(2022, 1, 1),
       currentPeriod: currentMonth,
       shouldSeeStatus: true,
     });
 
-    newUser.password = await newUser.encryptPassword("123456aA");
+    newUser.password = await newUser.encryptPassword(password);
     await newUser.save();
 
     console.clear();
     console.log("Created default user successfully");
     console.log("DNI: " + dni);
-    console.log("Password: 123456aA");
+    console.log("Password: " + password);
     console.log(" ");
     console.log("Loading documents...");
 
@@ -105,7 +106,7 @@ const loadMockData = () => {
         await categoriesDoc.save();
       }
 
-      const amountOfData = daysInMonth(currentMonth,currentYear);
+      const amountOfData = daysInMonth(currentMonth, currentYear);
 
       for (let i = 0; i < amountOfData; i++) {
         const date = new Date(new Date(2022, currentMonth, i));

@@ -98,6 +98,7 @@ const transferSchema = new Schema({
 });
 
 const periodSchema = new Schema({
+  id: String,
   start: Date,
   end: Date,
   days: Number,
