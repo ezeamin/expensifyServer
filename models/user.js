@@ -35,6 +35,9 @@ const userSchema = new Schema({
     type: Number,
     required: true,
   },
+  shouldSeeStatus: {
+    type: Boolean,
+  },
 });
 
 userSchema.methods.encryptPassword = (password) => {

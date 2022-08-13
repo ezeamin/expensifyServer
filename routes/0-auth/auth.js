@@ -53,6 +53,7 @@ router.post("/api/signup", async (req, res) => {
         recCode: generarCodigo(15),
         incorporation: new Date(),
         currentPeriod: new Date().getMonth(),
+        shouldSeeStatus: true,
       });
 
       user.password = user.encryptPassword(req.body.password);

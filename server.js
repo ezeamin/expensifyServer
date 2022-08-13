@@ -18,6 +18,9 @@ const routesDebts = require("./routes/debts/debts");
 const routesPayments = require("./routes/payments/payments");
 const routesPeriods = require("./routes/periods/periods");
 const routesCharts = require("./routes/charts/charts");
+const loadMockData = require("./helpers/db/loadMockData");
+
+const loadMock = false;
 
 //settings
 app.set("port", process.env.PORT || 5000);
@@ -46,13 +49,11 @@ app.use(routesPayments);
 app.use(routesPeriods);
 app.use(routesCharts);
 
-/*app.route("*").get((req, res) => {
-  res.sendFile(__dirname + "/public/index.html");
-});*/
+if(loadMock) loadMockData();
 
 if (process.env.NODE_ENV !== "test") {
   app.listen(app.get("port"), () => {
-    console.log(`Server on port ${app.get("port")}`);
+    if(!loadMock) console.log(`Server on port ${app.get("port")}`);
   });
 }
 
