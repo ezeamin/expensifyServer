@@ -41,6 +41,11 @@ router.get("/api/charts/dayChart", isAuthenticated, async (req, res) => {
 
   expDocument.expenses.map((exp) => {
     const date = new Date(exp.date);
+
+    if (!exp.tzOffset) exp.tzOffset = 180; // default ARG value
+    //set to local tz
+    date.setMinutes(date.getMinutes() - exp.tzOffset);
+
     const day = date.getDate();
     const value = list[day - 1].expenses;
 
@@ -50,7 +55,12 @@ router.get("/api/charts/dayChart", isAuthenticated, async (req, res) => {
 
   incDocument.incomes.map((inc) => {
     const date = new Date(inc.date);
-    const day = Number.parseInt(date.toLocaleDateString().split("/")[0]);
+
+    if (!inc.tzOffset) inc.tzOffset = 180; // default ARG value
+    //set to local tz
+    date.setMinutes(date.getMinutes() - inc.tzOffset);
+
+    const day = date.getDate();
     const value = list[day - 1].incomes;
 
     const total = value + inc.price;
@@ -86,6 +96,11 @@ router.get("/api/charts/weekChart", isAuthenticated, async (req, res) => {
 
   expDocument.expenses.map((exp) => {
     const date = new Date(exp.date);
+
+    if (!exp.tzOffset) exp.tzOffset = 180; // default ARG value
+    //set to local tz
+    date.setMinutes(date.getMinutes() - exp.tzOffset);
+
     const day = date.getDay(); //0 - sunday
     let hour = roundToNearestHour(date).getHours();
 
@@ -97,7 +112,7 @@ router.get("/api/charts/weekChart", isAuthenticated, async (req, res) => {
     days[day][hourIndex].value += exp.price;
   });
 
-  const dtCurrent = new Date(2022,7,4);
+  const dtCurrent = new Date();
   const year = dtCurrent.getFullYear();
   const month = dtCurrent.getMonth();
   const dtStart = new Date(year, month, 1);
@@ -107,7 +122,7 @@ router.get("/api/charts/weekChart", isAuthenticated, async (req, res) => {
   if (weeksPassedInMonths > 1) {
     for (let i = 0; i < 7; i++) {
       for (let j = 0; j < 12; j++) {
-        days[i][j].value = days[i][j].value / weeksPassedInMonths;
+        days[i][j].value = Math.round(days[i][j].value / weeksPassedInMonths);
       }
     }
   }

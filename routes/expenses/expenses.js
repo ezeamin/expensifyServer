@@ -20,6 +20,14 @@ router.get("/api/expenses", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
 
   const document = await DbExpenses.findOne({ dni });
+
+  const expenses = document.expenses.map((expense) => {
+    expense.date = formatDate(expense.date, expense.tzOffset);
+
+    return expense;
+  });
+
+  document.expenses = expenses;
   res.json(document);
 });
 
@@ -37,6 +45,7 @@ router.get("/api/expense/:id", isAuthenticated, async (req, res) => {
     date: expense.date,
     category: expense.categoryId,
     account: expense.accountId,
+    tzOffset: expense.tzOffset,
   };
 
   res.json(data);
@@ -77,13 +86,12 @@ router.get("/api/expenses/listTransform", isAuthenticated, async (req, res) => {
       };
     }
 
-    let date = formatDate(expense.date);
+    let date = formatDate(expense.date, expense.tzOffset);
 
     return {
       id: expense.id,
       title: expense.title,
       price: expense.price,
-      fullDate: expense.date,
       date: date.day,
       time: date.time,
       categoryId: expense.categoryId,
@@ -160,6 +168,7 @@ router.put("/api/expense", isAuthenticated, async (req, res) => {
     date: req.body.date,
     price: price,
     description: req.body.description.trim(),
+    tzOffset: req.body.tzOffset,
   });
 
   await document.save((err) => {
@@ -211,8 +220,8 @@ router.delete("/api/expense/:id", isAuthenticated, async (req, res) => {
         });
       }
 
-      if(document.accountId) updateAccountValues(dni, oldData, "expense");
-      if(document.categoryId) updateCategoryValues(dni, oldData);
+      if (document.accountId) updateAccountValues(dni, oldData, "expense");
+      if (document.categoryId) updateCategoryValues(dni, oldData);
       res.status(200).json(expenses);
     }
   );

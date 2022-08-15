@@ -9,11 +9,25 @@ const stringify = require("../../helpers/stringify");
 
 const DbDebts = require("../../models/debt");
 const hashing = require("../../helpers/debtorHashing");
+const formatDate = require("../../helpers/formatDate");
 
 router.get("/api/debts", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
 
   const document = await DbDebts.findOne({ dni });
+  const userDebts = document.userDebts.map((debt) => {
+    debt.date = formatDate(debt.date, debt.tzOffset);
+
+    return debt;
+  });
+  const otherDebts = document.otherDebts.map((debt) => {
+    debt.date = formatDate(debt.date, debt.tzOffset);
+
+    return debt;
+  });
+
+  document.userDebts = userDebts;
+  document.otherDebts = otherDebts;
   res.json(document);
 });
 
@@ -58,7 +72,8 @@ router.put("/api/debt/:type", isAuthenticated, async (req, res) => {
       document.userDebts[index].debts.push({
         id: generarCodigo(8),
         destinationAccountId: req.body.destinationAccountId,
-        date: new Date(),
+        date: req.body.date,
+        tzOffset: req.body.tzOffset,
         price: req.body.price,
         description: req.body.description.trim(),
       });
@@ -71,9 +86,10 @@ router.put("/api/debt/:type", isAuthenticated, async (req, res) => {
       document.userDebts[document.userDebts.length - 1].debts.push({
         id: generarCodigo(8),
         destinationAccountId: req.body.destinationAccountId,
-        date: new Date(),
+        date: req.body.date,
         price: req.body.price,
         description: req.body.description.trim(),
+        tzOffset: req.body.tzOffset,
       });
     }
   } else {
@@ -88,9 +104,10 @@ router.put("/api/debt/:type", isAuthenticated, async (req, res) => {
       document.otherDebts[index].debts.push({
         id: generarCodigo(8),
         originAccountId: req.body.originAccountId,
-        date: new Date(),
+        date: req.body.date,
         price: req.body.price,
         description: req.body.description.trim(),
+        tzOffset: req.body.tzOffset,
       });
     } else {
       // primer prestamo a este deudor
@@ -101,9 +118,10 @@ router.put("/api/debt/:type", isAuthenticated, async (req, res) => {
       document.otherDebts[document.otherDebts.length - 1].debts.push({
         id: generarCodigo(8),
         originAccountId: req.body.originAccountId,
-        date: new Date(),
+        date: req.body.date,
         price: req.body.price,
         description: req.body.description.trim(),
+        tzOffset: req.body.tzOffset,
       });
     }
   }

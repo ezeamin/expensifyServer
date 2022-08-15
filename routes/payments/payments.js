@@ -10,11 +10,19 @@ const addNewMonth = require("../../helpers/addNewMonth");
 
 const DbPayments = require("../../models/payment");
 const editList = require("../../helpers/db/editList");
+const formatDate = require("../../helpers/formatDate");
 
 router.get("/api/payments", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
 
   const document = await DbPayments.findOne({ dni });
+  const payments = document.payments.map((payment) => {
+    payment.date = formatDate(payment.date, payment.tzOffset);
+
+    return payment;
+  });
+
+  document.payments = payments;
   res.json(document);
 });
 
@@ -43,10 +51,11 @@ router.put("/api/payment", isAuthenticated, async (req, res) => {
     title: stringify(req.body.title, true),
     categoryId: req.body.categoryId,
     accountId: req.body.accountId,
-    date: new Date(),
+    date: req.body.date,
     paymentDate: new Date(req.body.paymentDate),
     price: req.body.price,
     description: req.body.description.trim(),
+    tzOffset: req.body.tzOffset,
   });
 
   document.save((err) => {

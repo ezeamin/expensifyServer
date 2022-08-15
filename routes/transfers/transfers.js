@@ -16,6 +16,13 @@ router.get("/api/transfers", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
 
   const document = await DbTransfers.findOne({ dni });
+  const transfers = document.transfers.map((transfer) => {
+    transfer.date = formatDate(transfer.date, transfer.tzOffset);
+
+    return transfer;
+  });
+
+  document.transfers = transfers;
   res.json(document);
 });
 
@@ -81,7 +88,8 @@ router.put("/api/transfer", isAuthenticated, async (req, res) => {
     id: generarCodigo(8),
     originAccountId: req.body.originAccountId,
     destinationAccountId: req.body.destinationAccountId,
-    date: new Date(),
+    date: req.body.date,
+    tzOffset: req.body.tzOffset,
     price: price,
     description: req.body.description.trim(),
   });
@@ -119,7 +127,7 @@ router.get(
         (account) => account.id === transfer.destinationAccountId
       );
 
-      let date = formatDate(transfer.date);
+      let date = formatDate(transfer.date, transfer.tzOffset);
 
       if (!originAccount) {
         originAccount = {

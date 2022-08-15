@@ -18,6 +18,14 @@ router.get("/api/incomes", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
 
   const document = await DbIncomes.findOne({ dni });
+  
+  const incomes = document.incomes.map((income) => {
+    income.date = formatDate(income.date, income.tzOffset);
+
+    return income;
+  });
+
+  document.incomes = incomes;
   res.json(document);
 });
 
@@ -34,6 +42,7 @@ router.get("/api/income/:id", isAuthenticated, async (req, res) => {
     description: income.description,
     date: income.date,
     accountId: income.accountId,
+    tzOffset: income.tzOffset,
   };
 
   res.json(data);
@@ -90,6 +99,7 @@ router.put("/api/income", isAuthenticated, async (req, res) => {
     date: req.body.date,
     price: price,
     description: req.body.description.trim(),
+    tzOffset: req.body.tzOffset,
   });
 
   document.totalIncome += price;
@@ -120,7 +130,7 @@ router.get("/api/incomes/listTransform", isAuthenticated, async (req, res) => {
       (account) => account.id === income.accountId
     );
 
-    let date = formatDate(income.date);
+    let date = formatDate(income.date, income.tzOffset);
 
     return {
       id: income.id,

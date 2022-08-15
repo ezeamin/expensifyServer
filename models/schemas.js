@@ -34,6 +34,7 @@ const userDebtSchema = new Schema({
       price: Number,
       description: String,
       modified: Boolean,
+      tzOffset: Number,
     },
   ],
 });
@@ -48,6 +49,7 @@ const otherDebtSchema = new Schema({
       date: Date,
       price: Number,
       description: String,
+      tzOffset: Number,
     },
   ],
 });
@@ -61,6 +63,7 @@ const expenseSchema = new Schema({
   price: Number,
   description: String,
   modified: Boolean,
+  tzOffset: Number,
 });
 
 const incomeSchema = new Schema({
@@ -71,6 +74,7 @@ const incomeSchema = new Schema({
   description: String,
   accountId: String,
   modified: Boolean,
+  tzOffset: Number,
 });
 
 const paymentSchema = new Schema({
@@ -84,6 +88,7 @@ const paymentSchema = new Schema({
   description: String,
   modified: Boolean,
   paid: Boolean,
+  tzOffset: Number,
 });
 
 const transferSchema = new Schema({
@@ -95,6 +100,7 @@ const transferSchema = new Schema({
   originAccountId: String,
   destinationAccountId: String,
   modified: Boolean,
+  tzOffset: Number,
 });
 
 const periodSchema = new Schema({
