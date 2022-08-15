@@ -4,7 +4,7 @@ const formatDate = (newDate, tz = 180) => {
   // avoids adding 180 minutes when it isn't necessary
   const localTz = new Date().getTimezoneOffset();
   if (tz !== localTz) {
-    date.setMinutes(date.getMinutes() + tz);
+    date.setMinutes(date.getMinutes() + tz * -1);
   }
 
   let days = date.getDate();
