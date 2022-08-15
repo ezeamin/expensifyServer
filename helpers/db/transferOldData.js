@@ -20,8 +20,8 @@ const resetAndUpdate = async (user) => {
   let month = new Date().getMonth(); // from 0 to 11
   let year = new Date().getFullYear();
 
-//   const incorporationDate = new Date(user.incorporation);
-//   if (incorporationDate.getMonth() === new Date().getMonth()) return;
+  //   const incorporationDate = new Date(user.incorporation);
+  //   if (incorporationDate.getMonth() === new Date().getMonth()) return;
 
   const old = await DbPeriods.findOne({ dni });
   if (!old) {
@@ -65,13 +65,13 @@ const resetAndUpdate = async (user) => {
   old.save((err) => {
     if (err) {
       // error
-        console.log(err);
+      console.log(err);
     }
 
     resetSpent("account", dni);
     resetSpent("category", dni);
 
-    resetTables(dni,expensesDoc,incomesDoc,transfersDoc);
+    resetTables(dni, expensesDoc, incomesDoc, transfersDoc);
     resetPayments(dni);
     console.log("Periodo actualizado");
   });
@@ -79,32 +79,28 @@ const resetAndUpdate = async (user) => {
 
 const transferOldData = async () => {
   const dt = new Date();
-  const day = dt.getDate();
   const month = dt.getMonth();
 
-//   if (day >= 1 && day <= 7) {
-  if (day) {
-    const user = await DbUsers.findOne({ dni: "43706393" });
+  const user = await DbUsers.findOne({ dni: "43706393" });
 
-    //currentPeriod: 6 - month: 7 (starts at 0)
-    if (user.currentPeriod !== month) {
-      // make all changes
-      const users = await DbUsers.find();
-      const dnis = users.map((user) => user.dni);
+  //currentPeriod: 6 - month: 7 (starts at 0)
+  if (user.currentPeriod !== month) {
+    // make all changes
+    const users = await DbUsers.find();
+    const dnis = users.map((user) => user.dni);
 
-      dnis.forEach(async (dni) => {
-        const user = await DbUsers.findOne({ dni });
-        user.currentPeriod++;
+    dnis.forEach(async (dni) => {
+      const user = await DbUsers.findOne({ dni });
+      user.currentPeriod++;
 
-        if (user.currentPeriod === 12) {
-          user.currentPeriod = 0;
-        }
+      if (user.currentPeriod === 12) {
+        user.currentPeriod = 0;
+      }
 
-        await user.save();
+      await user.save();
 
-        resetAndUpdate(user);
-      });
-    }
+      resetAndUpdate(user);
+    });
   }
 };
 
