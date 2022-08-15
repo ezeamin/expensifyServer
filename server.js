@@ -28,7 +28,7 @@ app.set("port", process.env.PORT || 5000);
 //middlewares
 //app.use(express.static(__dirname + '/public'));
 app.use(cors({
-  origin: ["https://expensify-arg.netlify.app","http://localhost:3000","*"],
+  origin: ["https://expensify-arg.netlify.app","http://localhost:3000","192.168.100.208","*"],
 }));
 if (process.env.NODE_ENV !== "test") {
   app.use(morgan("dev"));

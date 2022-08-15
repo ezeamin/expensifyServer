@@ -74,7 +74,6 @@ router.put("/api/account", isAuthenticated, async (req, res) => {
       acc.title.trim().toLowerCase() === req.body.title.trim().toLowerCase()
   )[0];
 
-  console.log(existingAccount);
   if (existingAccount) {
     res.status(401).json({
       message: "Ya existe una cuenta con este nombre",

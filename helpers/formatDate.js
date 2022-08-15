@@ -1,5 +1,7 @@
 const formatDate = (newDate) => {
-  const date = new Date(newDate + " UTC");
+  const date = newDate;
+  //set to local timezone
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
 
   let days = date.getDate();
   let month = date.getMonth() + 1;

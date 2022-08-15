@@ -41,6 +41,10 @@ router.get("/api/charts/dayChart", isAuthenticated, async (req, res) => {
 
   expDocument.expenses.map((exp) => {
     const date = new Date(exp.date);
+    
+    //set to local timezone
+    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+
     const day = date.getDate();
     const value = list[day - 1].expenses;
 

@@ -77,7 +77,8 @@ router.get("/api/expenses/listTransform", isAuthenticated, async (req, res) => {
       };
     }
 
-    let date = formatDate(expense.date);
+    const localDate = new Date(expense.date);
+    let date = formatDate(localDate);
 
     return {
       id: expense.id,
