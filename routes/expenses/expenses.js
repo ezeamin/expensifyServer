@@ -212,7 +212,7 @@ router.delete("/api/expense/:id", isAuthenticated, async (req, res) => {
         },
       },
     },
-    { new: true },
+    { new: false },
     (err, expenses) => {
       if (err) {
         return res.status(401).json({
@@ -220,8 +220,9 @@ router.delete("/api/expense/:id", isAuthenticated, async (req, res) => {
         });
       }
 
-      if (document.accountId) updateAccountValues(dni, oldData, "expense");
-      if (document.categoryId) updateCategoryValues(dni, oldData);
+      updateAccountValues(dni, oldData, "expense");
+      updateCategoryValues(dni, oldData);
+      
       res.status(200).json(expenses);
     }
   );

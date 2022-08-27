@@ -23,10 +23,10 @@ const updateAccountValues = (dni, oldData, type) => {
       const account = info.accounts[accountIndex];
 
       if (type === "expense") {
-        if(!account.noBalance) account.balance += oldData.price;
+        if (!account.noBalance) account.balance += oldData.price;
         account.spent -= oldData.price;
       } else if (type === "income") {
-        if(!account.noBalance) account.balance -= oldData.price;
+        if (!account.noBalance) account.balance -= oldData.price;
 
         info.totalIncome -= oldData.price;
       }
