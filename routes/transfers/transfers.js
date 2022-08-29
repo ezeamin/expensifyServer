@@ -8,7 +8,8 @@ const generarCodigo = require("../../helpers/generarCodigo");
 
 const DbTransfers = require("../../models/transfer");
 const DbAccounts = require("../../models/account");
-const editList = require("../../helpers/db/editList");
+const DbOlds = require("../../models/period");
+// const editList = require("../../helpers/db/editList");
 const formatDate = require("../../helpers/formatDate");
 const roundToTwo = require("../../helpers/roundToTwo");
 
@@ -25,6 +26,62 @@ router.get("/api/transfers", isAuthenticated, async (req, res) => {
   document.transfers = transfers;
   res.json(document);
 });
+
+router.get(
+  "/api/transfers/listTransform/:periodId",
+  isAuthenticated,
+  async (req, res) => {
+    const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+    const periodId = req.params.periodId;
+
+    const document = await DbOlds.findOne({ dni });
+    const periodDoc = document.periods.find((period) => period.id === periodId);
+    const accounts = periodDoc.accounts;
+
+    periodDoc.transfers.sort((a, b) => {
+      return b.date - a.date;
+    });
+
+    const transfers = periodDoc.transfers.map((transfer) => {
+      let originAccount = accounts.find(
+        (account) => account.id === transfer.originAccountId
+      );
+
+      let destinationAccount = accounts.find(
+        (account) => account.id === transfer.destinationAccountId
+      );
+
+      let date = formatDate(transfer.date, transfer.tzOffset);
+
+      if (!originAccount) {
+        originAccount = {
+          title: "DELETED",
+          color: "#ccc",
+        };
+      }
+
+      if (!destinationAccount) {
+        destinationAccount = {
+          title: "DELETED",
+          color: "#ccc",
+        };
+      }
+
+      return {
+        id: transfer.id,
+        price: transfer.price,
+        date: date.day,
+        time: date.time,
+        originAccount: originAccount.title,
+        originAccountColor: originAccount.color,
+        destinationAccount: destinationAccount.title,
+        destinationAccountColor: destinationAccount.color,
+        description: transfer.description,
+      };
+    });
+    return res.json(transfers);
+  }
+);
 
 router.put("/api/transfer", isAuthenticated, async (req, res) => {
   if (!validar(req.body) || !validarKeys("newTransfer", req.body)) {
@@ -159,18 +216,18 @@ router.get(
   }
 );
 
-router.put("/api/transfer/:id", isAuthenticated, async (req, res) => {
-  if (!validar(req.body)) {
-    res.status(401).json({
-      message: "Datos inválidos",
-    });
-    return;
-  }
+// router.put("/api/transfer/:id", isAuthenticated, async (req, res) => {
+//   if (!validar(req.body)) {
+//     res.status(401).json({
+//       message: "Datos inválidos",
+//     });
+//     return;
+//   }
 
-  const dni = process.env.NODE_ENV === "test" ? req.body.dni : req.user.dni;
+//   const dni = process.env.NODE_ENV === "test" ? req.body.dni : req.user.dni;
 
-  editList("transfer", dni, req.params.id, req.body, res);
-});
+//   editList("transfer", dni, req.params.id, req.body, res);
+// });
 
 router.delete("/api/transfer/:id", isAuthenticated, (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;

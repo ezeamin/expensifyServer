@@ -9,6 +9,7 @@ const stringify = require("../../helpers/stringify");
 
 const DbIncomes = require("../../models/income");
 const DbAccounts = require("../../models/account");
+const DbOlds = require("../../models/period");
 const editList = require("../../helpers/db/editList");
 const formatDate = require("../../helpers/formatDate");
 const roundToTwo = require("../../helpers/roundToTwo");
@@ -18,7 +19,7 @@ router.get("/api/incomes", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
 
   const document = await DbIncomes.findOne({ dni });
-  
+
   const incomes = document.incomes.map((income) => {
     income.date = formatDate(income.date, income.tzOffset);
 
@@ -28,6 +29,43 @@ router.get("/api/incomes", isAuthenticated, async (req, res) => {
   document.incomes = incomes;
   res.json(document);
 });
+
+router.get(
+  "/api/incomes/listTransform/:periodId",
+  isAuthenticated,
+  async (req, res) => {
+    const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+    const periodId = req.params.periodId;
+
+    const document = await DbOlds.findOne({ dni });
+    const periodDoc = document.periods.find((period) => period.id === periodId);
+    const accounts = periodDoc.accounts;
+
+    periodDoc.incomes.sort((a, b) => {
+      return b.date - a.date;
+    });
+
+    const incomes = periodDoc.incomes.map((income) => {
+      const account = accounts.find(
+        (account) => account.id === income.accountId
+      );
+
+      let date = formatDate(income.date, income.tzOffset);
+
+      return {
+        id: income.id,
+        title: income.title,
+        price: income.price,
+        date: date.day,
+        time: date.time,
+        account: account.title,
+        accountColor: account.color,
+        description: income.description,
+      };
+    });
+    return res.json(incomes);
+  }
+);
 
 router.get("/api/income/:id", isAuthenticated, async (req, res) => {
   const id = req.params.id;
@@ -184,7 +222,7 @@ router.delete("/api/income/:id", isAuthenticated, async (req, res) => {
         });
       }
 
-      if(document.accountId) updateAccountValues(dni, oldData, "account");
+      if (document.accountId) updateAccountValues(dni, oldData, "account");
       res.status(200).json(incomes);
     }
   );

@@ -8,6 +8,7 @@ const generarCodigo = require("../../helpers/generarCodigo");
 const stringify = require("../../helpers/stringify");
 
 const DbExpenses = require("../../models/expense");
+const DbOlds = require("../../models/period");
 const DBCategories = require("../../models/category");
 const DbAccounts = require("../../models/account");
 const editList = require("../../helpers/db/editList");
@@ -30,6 +31,69 @@ router.get("/api/expenses", isAuthenticated, async (req, res) => {
   document.expenses = expenses;
   res.json(document);
 });
+
+router.get(
+  "/api/expenses/listTransform/:periodId",
+  isAuthenticated,
+  async (req, res) => {
+    const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+    const periodId = req.params.periodId;
+
+    const document = await DbOlds.findOne({ dni });
+    const periodDoc = document.periods.find((period) => period.id === periodId);
+
+    const categories = periodDoc.categories;
+    const accounts = periodDoc.accounts;
+
+    periodDoc.incomes.sort((a, b) => {
+      return b.date - a.date;
+    });
+
+    const expenses = periodDoc.expenses.map((expense) => {
+      let category = categories.find(
+        (category) => category.id === expense.categoryId
+      );
+
+      if (!category) {
+        category = {
+          title: "DELETED",
+          color: "#ccc",
+          icon: "fas fa-trash-alt",
+        };
+      }
+
+      let account = accounts.find(
+        (account) => account.id === expense.accountId
+      );
+
+      if (!account) {
+        account = {
+          title: "DELETED",
+          color: "#ccc",
+        };
+      }
+
+      let date = formatDate(expense.date, expense.tzOffset);
+
+      return {
+        id: expense.id,
+        title: expense.title,
+        price: expense.price,
+        date: date.day,
+        time: date.time,
+        categoryId: expense.categoryId,
+        category: category.title,
+        icon: category.icon,
+        color: category.color,
+        accountId: expense.accountId,
+        account: account.title,
+        accountColor: account.color,
+        description: expense.description,
+      };
+    });
+    return res.json(expenses);
+  }
+);
 
 router.get("/api/expense/:id", isAuthenticated, async (req, res) => {
   const id = req.params.id;
@@ -222,7 +286,7 @@ router.delete("/api/expense/:id", isAuthenticated, async (req, res) => {
 
       updateAccountValues(dni, oldData, "expense");
       updateCategoryValues(dni, oldData);
-      
+
       res.status(200).json(expenses);
     }
   );

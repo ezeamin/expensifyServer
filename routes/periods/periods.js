@@ -36,4 +36,19 @@ router.get("/api/periods", isAuthenticated, async (req, res) => {
   res.json(periodos);
 });
 
+router.get("/api/periods/monthNum/:id", isAuthenticated, async (req, res) => {
+  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+  const id = req.params.id;
+
+  const periodos = await DbPeriod.findOne({ dni });
+  if (periodos.length === 0) {
+    return res.sendStatus(404);
+  }
+
+  const periodDoc = periodos.periods.find((period) => period.id === id);
+  const month = periodDoc.start.getMonth();
+
+  res.json({month});
+});
+
 module.exports = router;
