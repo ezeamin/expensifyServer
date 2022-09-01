@@ -11,6 +11,12 @@ router.get("/api/isNewMonth", isAuthenticated, (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
 
   const date = new Date();
+  const localTz = date.getTimezoneOffset();
+
+  if (localTz !== 180) {
+    date.setMinutes(date.getMinutes() + 180 * -1);
+  }
+
   DbUsers.findOne({ dni }, (err, user) => {
     if (err) {
       console.log(err);
@@ -48,7 +54,7 @@ router.get("/api/periods/monthNum/:id", isAuthenticated, async (req, res) => {
   const periodDoc = periodos.periods.find((period) => period.id === id);
   const month = periodDoc.start.getMonth();
 
-  res.json({month});
+  res.json({ month });
 });
 
 module.exports = router;

@@ -45,7 +45,7 @@ router.get(
     const categories = periodDoc.categories;
     const accounts = periodDoc.accounts;
 
-    periodDoc.incomes.sort((a, b) => {
+    periodDoc.expenses.sort((a, b) => {
       return b.date - a.date;
     });
 

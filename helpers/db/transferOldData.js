@@ -17,8 +17,14 @@ const generarCodigo = require("../generarCodigo");
 
 const resetAndUpdate = async (user) => {
   const dni = user.dni;
-  let month = new Date().getMonth(); // from 0 to 11
+
+  let month = new Date().getMonth() - 1; // from 0 to 11, -1 to get the previous month
   let year = new Date().getFullYear();
+
+  if (month === -1) {
+    month = 11;
+    year -= 1;
+  }
 
   //   const incorporationDate = new Date(user.incorporation);
   //   if (incorporationDate.getMonth() === new Date().getMonth()) return;
