@@ -52,7 +52,7 @@ router.get("/api/periods/monthNum/:id", isAuthenticated, async (req, res) => {
   }
 
   const periodDoc = periodos.periods.find((period) => period.id === id);
-  const date = new Date(periodDoc.start);
+  const date = periodDoc.start;
 
   const localTz = date.getTimezoneOffset();
   if (180 !== localTz) {
@@ -60,7 +60,6 @@ router.get("/api/periods/monthNum/:id", isAuthenticated, async (req, res) => {
   }
 
   const month = date.getMonth();
-  // console.log(date,month,date.getDate());
 
   res.json({ month });
 });

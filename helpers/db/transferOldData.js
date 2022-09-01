@@ -50,10 +50,19 @@ const resetAndUpdate = async (user) => {
     0
   );
 
+  let startDate = new Date(year, month, 1);
+  let endDate = new Date(year, month + 1, 0);
+
+  const tzOffset = startDate.getTimezoneOffset();
+  if (tzOffset !== 180) {
+    startDate.setMinutes(startDate.getMinutes() + tzOffset * -1);
+    endDate.setMinutes(endDate.getMinutes() + tzOffset * -1);
+  }
+
   const newPeriod = {
     id: generarCodigo(8),
-    start: new Date(year, month, 1),
-    end: new Date(year, month, daysInMonth(month, year)),
+    start: startDate,
+    end: endDate,
     days: daysInMonth(month, year),
     balance: roundToTwo(balance),
     spent: roundToTwo(spent),
