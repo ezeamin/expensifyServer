@@ -54,6 +54,7 @@ router.post("/api/signup", async (req, res) => {
         incorporation: new Date(),
         currentPeriod: new Date().getMonth(),
         shouldSeeStatus: true,
+        hasAskedForNewPassword: false,
       });
 
       user.password = user.encryptPassword(req.body.password);
@@ -208,16 +209,88 @@ router.get("/api/email/:dni", async (req, res) => {
     text: `Hola, ${user.name}!\n\nPara recuperar tu contraseña, ingresa dentro de los 15 minutos siguientes a este link: https://expensify-arg.netlify.app/auth/recPassword/${user.recCode}\n\nSaludos,\nEquipo Expensify\n\nSi no pediste este cambio, puedes ignorar este correo.`,
   };
 
-  transporter.sendMail(mailOptions, function (error) {
+  transporter.sendMail(mailOptions, async (error) => {
     if (error) {
       return res.status(500).json({
         message: "Error al enviar correo",
         extra: error,
       });
     } else {
+      user.hasAskedForNewPassword = true;
+
+      await user.save();
       return res.sendStatus(200);
     }
   });
+});
+
+// check for existing recCode
+router.get("/api/auth/recPassword/:recCode", async (req, res) => {
+  const recCode = req.params.recCode;
+
+  const user = await DbUsers.findOne({ recCode });
+
+  if (!user) {
+    return res.sendStatus(401);
+  }
+
+  return res.sendStatus(200);
+});
+
+router.put("/api/auth/recPassword", async (req, res) => {
+  if (!req.body?.password || !req.body?.recCode) {
+    return res.status(401).json({
+      ok: false,
+      message: "Datos inválidos",
+    });
+  }
+
+  const user = await DbUsers.findOne({ recCode: req.body.recCode });
+
+  if (!user) {
+    return res.status(401).json({
+      message: "Código de recuperacion inválido",
+    });
+  }
+
+  if (!user.hasAskedForNewPassword) {
+    return res.status(401).json({
+      message: "No se pidió cambio de contraseña",
+    });
+  }
+
+  user.password = user.encryptPassword(req.body.password);
+  user.recCode = generarCodigo(15);
+  user.hasAskedForNewPassword = false;
+
+  await user.save();
+
+  return res.sendStatus(200);
+});
+
+router.put("/api/auth/recPasswordFromLoggedAccount", isAuthenticated, async (req, res) => {
+  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+
+  if (!req.body?.password) {
+    return res.status(401).json({
+      ok: false,
+      message: "Datos inválidos",
+    });
+  }
+  
+  const user = await DbUsers.findOne({ dni });
+
+  if (!user) {
+    return res.status(401);
+  }
+
+  user.password = user.encryptPassword(req.body.password);
+  user.recCode = generarCodigo(15);
+  user.hasAskedForNewPassword = false;
+
+  await user.save();
+
+  return res.sendStatus(200);
 });
 
 router.delete("/api/logout", (req, res) => {
@@ -240,6 +313,23 @@ router.get("/api/ping", (req, res) => {
   return res.sendStatus(200);
 });
 
+router.put("/auth/changeAskForNewPassword", async (req, res) => {
+  const user = await DbUsers.findOne({ dni: req.body.dni });
+
+  if (!user) {
+    return res.status(401).json({
+      message: "DNI no registrado",
+    });
+  }
+
+
+  user.hasAskedForNewPassword = false;
+
+  await user.save();
+
+  return res.sendStatus(200);
+})
+
 router.get("/api/auth", isAuthenticated, (req, res) => {
   res.status(200).json({
     user: {
@@ -247,6 +337,7 @@ router.get("/api/auth", isAuthenticated, (req, res) => {
       dni: req.user.dni,
       email: req.user.email,
       incorporation: req.user.incorporation,
+      recCode: req.user.recCode,
     },
   });
 });
@@ -275,7 +366,7 @@ router.get("/api/user", isAuthenticated, async (req, res) => {
         });
       }
 
-      info.accounts.map(acc=>{
+      info.accounts.map((acc) => {
         saldo += acc.balance;
         spent += acc.spent;
       });

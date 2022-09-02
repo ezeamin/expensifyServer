@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 const { Schema } = mongoose;
 
 const userSchema = new Schema({
@@ -38,14 +38,17 @@ const userSchema = new Schema({
   shouldSeeStatus: {
     type: Boolean,
   },
+  hasAskedForNewPassword: {
+    type: Boolean,
+  },
 });
 
 userSchema.methods.encryptPassword = (password) => {
-  return bcrypt.hashSync(password, 10)
+  return bcrypt.hashSync(password, 10);
 };
 
-userSchema.methods.comparePassword = (password,password2) =>{
+userSchema.methods.comparePassword = (password, password2) => {
   return bcrypt.compareSync(password, password2);
 };
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model("User", userSchema);

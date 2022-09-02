@@ -6,7 +6,7 @@ const isAuthenticated = require("../../helpers/isAuthenticated");
 const DbExpenses = require("../../models/expense");
 const DbIncomes = require("../../models/income");
 const DbCategories = require("../../models/category");
-const DbAccounts = require("../../models/account");
+// const DbAccounts = require("../../models/account");
 const DbOlds = require("../../models/period");
 const roundToNearestHour = require("../../helpers/roundToNearestHour");
 const getWeekDay = require("../../helpers/getWeekDay");
@@ -31,6 +31,12 @@ router.get("/api/charts/dayChart", isAuthenticated, async (req, res) => {
   const incDocument = await DbIncomes.findOne({ dni });
 
   const dt = new Date();
+
+  const tzOffset = dt.getTimezoneOffset();
+  if (tzOffset !== 180) {
+    dt.setMinutes(dt.getMinutes() + 180 * -1);
+  }
+
   const currentDay = dt.getDate();
 
   // the array will contain as many spaces as days had passed
@@ -114,9 +120,18 @@ router.get("/api/charts/weekChart", isAuthenticated, async (req, res) => {
   });
 
   const dtCurrent = new Date();
+  const tzOffset = dtCurrent.getTimezoneOffset();
+  if (tzOffset !== 180) {
+    dtCurrent.setMinutes(dtCurrent.getMinutes() + 180 * -1);
+  }
+
   const year = dtCurrent.getFullYear();
   const month = dtCurrent.getMonth();
+
   const dtStart = new Date(year, month, 1);
+  if (tzOffset !== 180) {
+    dtStart.setMinutes(dtStart.getMinutes() + 180 * -1);
+  }
 
   const weeksPassedInMonths = differenceInWeeks(dtCurrent, dtStart) + 1;
 
