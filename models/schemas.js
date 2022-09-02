@@ -111,6 +111,7 @@ const periodSchema = new Schema({
   spent: Number,
   income: Number,
   balance: Number,
+  limit: Number,
   incomes: [incomeSchema],
   expenses: [expenseSchema],
   transfers: [transferSchema],
