@@ -7,6 +7,7 @@ const DbExpenses = require("../../models/expense");
 const DbIncomes = require("../../models/income");
 const DbCategories = require("../../models/category");
 const DbAccounts = require("../../models/account");
+const DbOlds = require("../../models/period");
 const roundToNearestHour = require("../../helpers/roundToNearestHour");
 const getWeekDay = require("../../helpers/getWeekDay");
 const differenceInWeeks = require("../../helpers/differenceInWeeks");
@@ -134,5 +135,46 @@ router.get("/api/charts/weekChart", isAuthenticated, async (req, res) => {
 
   res.json(list);
 });
+
+router.get(
+  "/api/charts/spentAndIncomeOldChart",
+  isAuthenticated,
+  async (req, res) => {
+    const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+
+    const periodDocument = await DbOlds.findOne({ dni });
+
+    const currentMonth = new Date().getMonth();
+    //create array with n elements, where n is the number of months
+    const list = new Array(currentMonth + 1)
+      .fill(undefined)
+      .map((_el, index) => ({
+        month: index,
+        spent: 0,
+        income: 0,
+      }));
+
+    periodDocument.periods.forEach((period) => {
+      const month = Number(period.start.toISOString().split("-")[1]) - 1;
+
+      list.forEach((el) => {
+        if (el.month === month) {
+          el.spent = period.spent;
+          el.income = period.income;
+        }
+      });
+    });
+
+    const incomeDoc = await DbIncomes.findOne({ dni });
+    const expensesDoc = await DbExpenses.findOne({ dni });
+
+    const spent = expensesDoc.expenses.reduce((acc, el) => acc + el.price, 0);
+
+    list[currentMonth].spent = spent;
+    list[currentMonth].income = incomeDoc.totalIncome;
+
+    res.json(list);
+  }
+);
 
 module.exports = router;
