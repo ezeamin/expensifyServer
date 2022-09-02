@@ -31,37 +31,50 @@ router.get("/api/isNewMonth", isAuthenticated, (req, res) => {
   });
 });
 
-router.get("/api/periods", isAuthenticated, async (req, res) => {
+router.get("/api/periods/:year", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+  const year = req.params.year;
 
   const periodos = await DbPeriod.findOne({ dni });
   if (periodos.length === 0) {
     return res.sendStatus(404);
   }
 
-  res.json(periodos);
+  const periodosYear = periodos.periods.find((periodo) => {
+    return periodo.year === parseInt(year);
+  });
+
+  res.json(periodosYear);
 });
 
-router.get("/api/periods/monthNum/:id", isAuthenticated, async (req, res) => {
-  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
-  const id = req.params.id;
+router.get(
+  "/api/periods/:year/monthNum/:id",
+  isAuthenticated,
+  async (req, res) => {
+    const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+    const year = req.params.year;
+    const id = req.params.id;
 
-  const periodos = await DbPeriod.findOne({ dni });
-  if (periodos.length === 0) {
-    return res.sendStatus(404);
+    const periodos = await DbPeriod.findOne({ dni });
+    if (periodos.length === 0) {
+      return res.sendStatus(404);
+    }
+
+    const periodYearDoc = periodos.periods.find(
+      (period) => period.year === Number(year)
+    );
+    const periodDoc = periodYearDoc.periods.find((period) => period.id === id);
+    const date = periodDoc.start;
+
+    const localTz = date.getTimezoneOffset();
+    if (180 !== localTz) {
+      date.setMinutes(date.getMinutes() + 180 * -1);
+    }
+
+    const month = date.getMonth();
+
+    res.json({ month });
   }
-
-  const periodDoc = periodos.periods.find((period) => period.id === id);
-  const date = periodDoc.start;
-
-  const localTz = date.getTimezoneOffset();
-  if (180 !== localTz) {
-    date.setMinutes(date.getMinutes() + 180 * -1);
-  }
-
-  const month = date.getMonth();
-
-  res.json({ month });
-});
+);
 
 module.exports = router;

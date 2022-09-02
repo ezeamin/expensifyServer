@@ -7,7 +7,12 @@ const userOldSchema = new Schema({
     type: String,
     unique: true,
   },
-  periods: [periodSchema],
+  periods: [
+    {
+      year: Number,
+      periods: [periodSchema],
+    },
+  ],
 });
 
 module.exports = mongoose.model("Old", userOldSchema);

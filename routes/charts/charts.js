@@ -137,12 +137,17 @@ router.get("/api/charts/weekChart", isAuthenticated, async (req, res) => {
 });
 
 router.get(
-  "/api/charts/spentAndIncomeOldChart",
+  "/api/charts/spentAndIncomeOldChart/:year",
   isAuthenticated,
   async (req, res) => {
     const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+    const year = req.params.year;
 
     const periodDocument = await DbOlds.findOne({ dni });
+
+    const yearDoc = periodDocument.periods.find(
+      (period) => period.year === Number(year)
+    );
 
     const currentMonth = new Date().getMonth();
     //create array with n elements, where n is the number of months
@@ -154,7 +159,7 @@ router.get(
         income: 0,
       }));
 
-    periodDocument.periods.forEach((period) => {
+    yearDoc.periods.forEach((period) => {
       const month = Number(period.start.toISOString().split("-")[1]) - 1;
 
       list.forEach((el) => {

@@ -33,14 +33,20 @@ router.get("/api/expenses", isAuthenticated, async (req, res) => {
 });
 
 router.get(
-  "/api/expenses/listTransform/:periodId",
+  "/api/expenses/listTransform/:year/:periodId",
   isAuthenticated,
   async (req, res) => {
     const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
     const periodId = req.params.periodId;
+    const year = req.params.year;
 
     const document = await DbOlds.findOne({ dni });
-    const periodDoc = document.periods.find((period) => period.id === periodId);
+    const periodYearDoc = document.periods.find((period) => {
+      return period.year === Number(year);
+    });
+    const periodDoc = periodYearDoc.periods.find(
+      (period) => period.id === periodId
+    );
 
     const categories = periodDoc.categories;
     const accounts = periodDoc.accounts;

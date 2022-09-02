@@ -26,9 +26,6 @@ const resetAndUpdate = async (user) => {
     year -= 1;
   }
 
-  //   const incorporationDate = new Date(user.incorporation);
-  //   if (incorporationDate.getMonth() === new Date().getMonth()) return;
-
   const old = await DbPeriods.findOne({ dni });
   if (!old) {
     console.log("No hay periodos");
@@ -75,7 +72,15 @@ const resetAndUpdate = async (user) => {
     categories: categoriesDoc.categories,
   };
 
-  old.periods.push(newPeriod);
+  const yearDoc = old.periods.findIndex((period) => {
+    return period.year === year;
+  });
+
+  if (yearDoc !== -1) {
+    old.periods[yearDoc].push(newPeriod);
+  } else {
+    old.periods.push({ year, periods: [newPeriod] });
+  }
 
   old.save((err) => {
     if (err) {

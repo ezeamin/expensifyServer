@@ -28,14 +28,21 @@ router.get("/api/transfers", isAuthenticated, async (req, res) => {
 });
 
 router.get(
-  "/api/transfers/listTransform/:periodId",
+  "/api/transfers/listTransform/:year/:periodId",
   isAuthenticated,
   async (req, res) => {
     const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
     const periodId = req.params.periodId;
+    const year = req.params.year;
 
     const document = await DbOlds.findOne({ dni });
-    const periodDoc = document.periods.find((period) => period.id === periodId);
+    const periodYearDoc = document.periods.find((period) => {
+      return period.year === Number(year);
+    });
+    const periodDoc = periodYearDoc.periods.find(
+      (period) => period.id === periodId
+    );
+
     const accounts = periodDoc.accounts;
 
     periodDoc.transfers.sort((a, b) => {
