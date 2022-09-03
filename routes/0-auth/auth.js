@@ -268,30 +268,34 @@ router.put("/api/auth/recPassword", async (req, res) => {
   return res.sendStatus(200);
 });
 
-router.put("/api/auth/recPasswordFromLoggedAccount", isAuthenticated, async (req, res) => {
-  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+router.put(
+  "/api/auth/recPasswordFromLoggedAccount",
+  isAuthenticated,
+  async (req, res) => {
+    const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
 
-  if (!req.body?.password) {
-    return res.status(401).json({
-      ok: false,
-      message: "Datos inválidos",
-    });
+    if (!req.body?.password) {
+      return res.status(401).json({
+        ok: false,
+        message: "Datos inválidos",
+      });
+    }
+
+    const user = await DbUsers.findOne({ dni });
+
+    if (!user) {
+      return res.status(401);
+    }
+
+    user.password = user.encryptPassword(req.body.password);
+    user.recCode = generarCodigo(15);
+    user.hasAskedForNewPassword = false;
+
+    await user.save();
+
+    return res.sendStatus(200);
   }
-  
-  const user = await DbUsers.findOne({ dni });
-
-  if (!user) {
-    return res.status(401);
-  }
-
-  user.password = user.encryptPassword(req.body.password);
-  user.recCode = generarCodigo(15);
-  user.hasAskedForNewPassword = false;
-
-  await user.save();
-
-  return res.sendStatus(200);
-});
+);
 
 router.delete("/api/logout", (req, res) => {
   let token = req.headers.refresh;
@@ -322,13 +326,12 @@ router.put("/auth/changeAskForNewPassword", async (req, res) => {
     });
   }
 
-
   user.hasAskedForNewPassword = false;
 
   await user.save();
 
   return res.sendStatus(200);
-})
+});
 
 router.get("/api/auth", isAuthenticated, (req, res) => {
   res.status(200).json({
@@ -388,6 +391,29 @@ router.get("/api/user", isAuthenticated, async (req, res) => {
 });
 
 router.put("/api/user", isAuthenticated, async (req, res) => {
+  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+  const newContent = req.body;
+
+  const user = await DbUsers.findOne({ dni });
+
+  if (!user) {
+    return res.status(401).json({
+      message: "DNI no registrado",
+    });
+  }
+
+  Object.keys(newContent).forEach((key) => {
+    user[key] = newContent[key];
+  });
+
+  await user.save();
+
+  return res.status(200).json({
+    message: "Usuario actualizado",
+  });
+});
+
+router.put("/api/user/seeStatus", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
   const { shouldSeeStatus } = req.body;
 
