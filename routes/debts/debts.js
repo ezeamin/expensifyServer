@@ -12,24 +12,33 @@ const DbAccounts = require("../../models/account");
 const hashing = require("../../helpers/debtorHashing");
 const formatDate = require("../../helpers/formatDate");
 
-router.get("/api/debts", isAuthenticated, async (req, res) => {
+router.get("/api/debts/:type", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+  const type = req.params.type;
 
   const document = await DbDebts.findOne({ dni });
-  const userDebts = document.userDebts.map((debt) => {
-    debt.date = formatDate(debt.date, debt.tzOffset);
 
-    return debt;
+  const userDebts = document.userDebts.map((debtsTo) => {
+    debtsTo.debts = debtsTo.debts.map((debt) => {
+      debt.date = formatDate(debt.date, debt.tzOffset);
+
+      return debt;
+    });
+
+    return debtsTo;
   });
-  const otherDebts = document.otherDebts.map((debt) => {
-    debt.date = formatDate(debt.date, debt.tzOffset);
+  const otherDebts = document.otherDebts.map((debtor) => {
+    debtor.debts = debtor.debts.map((debt) => {
+      debt.date = formatDate(debt.date, debt.tzOffset);
 
-    return debt;
+      return debt;
+    });
+
+    return debtor;
   });
 
-  document.userDebts = userDebts;
-  document.otherDebts = otherDebts;
-  res.json(document);
+  if (type === "user") res.json(userDebts);
+  else res.json(otherDebts);
 });
 
 router.get(
@@ -155,7 +164,6 @@ router.put("/api/debt/:type", isAuthenticated, async (req, res) => {
 
     await accountsDoc.save();
   }
-
 
   if (type === "user") {
     // deuda propia
