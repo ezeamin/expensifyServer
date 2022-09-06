@@ -8,6 +8,7 @@ const generarCodigo = require("../../helpers/generarCodigo");
 const stringify = require("../../helpers/stringify");
 
 const DbDebts = require("../../models/debt");
+const DbAccounts = require("../../models/account");
 const hashing = require("../../helpers/debtorHashing");
 const formatDate = require("../../helpers/formatDate");
 
@@ -117,10 +118,7 @@ router.put("/api/debts/newDebtor/:type", isAuthenticated, async (req, res) => {
 router.put("/api/debt/:type", isAuthenticated, async (req, res) => {
   const type = req.params.type; // "user" is own debts, "other" is other people's debts
 
-  if (
-    !validar(req.body) ||
-    !validarKeys(type === "user" ? "newUserDebt" : "newOtherDebt", req.body)
-  ) {
+  if (!validar(req.body) || !validarKeys("debt", req.body)) {
     res.status(401).json({
       message: "Datos inválidos",
     });
@@ -131,84 +129,68 @@ router.put("/api/debt/:type", isAuthenticated, async (req, res) => {
   const dni = process.env.NODE_ENV === "test" ? req.body.dni : req.user.dni;
 
   const document = await DbDebts.findOne({ dni });
+  const accountsDoc = await DbAccounts.findOne({ dni });
 
-  if (!document) {
-    res.status(401).json({
-      message: "No existe el documento",
+  if (!document || !accountsDoc) {
+    return res.status(404).json({
+      message: "Error cargando deuda :P",
     });
-    return;
   }
 
-  const hashedCode = hashing(req.body.name);
+  // restar de cuenta de origen (case "other")
+  if (type === "other") {
+    const accountIndex = accountsDoc.accounts.findIndex(
+      (acc) => acc.id === req.body.accountId
+    );
+
+    if (accountIndex === -1) {
+      return res.status(404).json({
+        message: "Error cargando deuda :P",
+      });
+    }
+
+    if (!accountsDoc.accounts[accountIndex].noBalance) {
+      accountsDoc.accounts[accountIndex].balance -= req.body.price;
+    }
+
+    await accountsDoc.save();
+  }
+
 
   if (type === "user") {
-    if (document.userDebts.some((obj) => obj.id === hashedCode)) {
-      // ya existe el prestador
-      let index = document.userDebts
-        .map((x) => {
-          return x.id;
-        })
-        .indexOf(hashedCode);
+    // deuda propia
+    let index = document.userDebts.findIndex((x) => x.id === req.body.nameId);
 
-      document.userDebts[index].debts.push({
-        id: generarCodigo(8),
-        destinationAccountId: req.body.destinationAccountId,
-        date: req.body.date,
-        tzOffset: req.body.tzOffset,
-        price: req.body.price,
-        description: req.body.description.trim(),
-        title: req.body.title.trim(),
-      });
-    } else {
-      // primer prestamo de este prestador
-      document.userDebts.push({
-        id: hashedCode,
-        name: stringify(req.body.name, false),
-      });
-      document.userDebts[document.userDebts.length - 1].debts.push({
-        id: generarCodigo(8),
-        destinationAccountId: req.body.destinationAccountId,
-        date: req.body.date,
-        price: req.body.price,
-        description: req.body.description.trim(),
-        tzOffset: req.body.tzOffset,
-        title: req.body.title.trim(),
-      });
-    }
+    document.userDebts[index].debts.push({
+      id: generarCodigo(8),
+      destinationAccountId: req.body.accountId,
+      date: req.body.date,
+      tzOffset: req.body.tzOffset,
+      price: req.body.price,
+      description: req.body.description.trim(),
+      title: req.body.title.trim(),
+    });
+
+    const total = Number(document.totalUserDebt) + Number(req.body.price);
+
+    document.totalUserDebt = total;
   } else {
-    if (document.otherDebts.some((obj) => obj.id === hashedCode)) {
-      // ya existe el deudor
-      let index = document.userDebts
-        .map((x) => {
-          return x.id;
-        })
-        .indexOf(hashedCode);
+    //deuda ajena
+    let index = document.otherDebts.findIndex((x) => x.id === req.body.nameId);
 
-      document.otherDebts[index].debts.push({
-        id: generarCodigo(8),
-        originAccountId: req.body.originAccountId,
-        date: req.body.date,
-        price: req.body.price,
-        description: req.body.description.trim(),
-        tzOffset: req.body.tzOffset,
-        title: req.body.title.trim(),
-      });
-    } else {
-      // primer prestamo a este deudor
-      document.otherDebts.push({
-        id: hashedCode,
-        name: stringify(req.body.name, false),
-      });
-      document.otherDebts[document.otherDebts.length - 1].debts.push({
-        id: generarCodigo(8),
-        originAccountId: req.body.originAccountId,
-        date: req.body.date,
-        price: req.body.price,
-        description: req.body.description.trim(),
-        tzOffset: req.body.tzOffset,
-        title: req.body.title.trim(),
-      });
-    }
+    document.otherDebts[index].debts.push({
+      id: generarCodigo(8),
+      originAccountId: req.body.accountId,
+      date: req.body.date,
+      price: req.body.price,
+      description: req.body.description.trim(),
+      tzOffset: req.body.tzOffset,
+      title: req.body.title.trim(),
+    });
+
+    const total = Number(document.totalOtherDebt) + Number(req.body.price);
+
+    document.totalOtherDebt = total;
   }
 
   await document.save((err) => {
@@ -222,6 +204,7 @@ router.put("/api/debt/:type", isAuthenticated, async (req, res) => {
   });
 });
 
+//actualizar deuda
 router.put(
   "/api/debt/:type/:personId/:debtId",
   isAuthenticated,
@@ -308,6 +291,7 @@ router.put(
   }
 );
 
+// eliminar deuda (saldar?)
 router.delete(
   "/api/debt/:type/:personId/:debtId",
   isAuthenticated,
