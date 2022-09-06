@@ -25,10 +25,11 @@ const categorySchema = new Schema({
 
 const userDebtSchema = new Schema({
   id: String,
-  lenderName: String,
+  name: String,
   debts: [
     {
       id: String,
+      title: String,
       destinationAccountId: String, // not mandatory
       date: Date,
       price: Number,
@@ -41,10 +42,11 @@ const userDebtSchema = new Schema({
 
 const otherDebtSchema = new Schema({
   id: String,
-  debtorName: String,
+  name: String,
   debts: [
     {
       id: String,
+      title: String,
       originAccountId: String, // not mandatory
       date: Date,
       price: Number,
