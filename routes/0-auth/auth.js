@@ -9,6 +9,7 @@ const isAuthenticated = require("../../helpers/isAuthenticated");
 const initiateDbUsers = require("../../helpers/db/initiate");
 
 const DbUsers = require("../../models/user");
+const DbDebts = require("../../models/debt");
 const DbTokens = require("../../models/token");
 const DbAccounts = require("../../models/account");
 const { generateAccessToken } = require("../../helpers/tokens");
@@ -350,6 +351,7 @@ router.get("/api/user", isAuthenticated, async (req, res) => {
   let spent = 0;
 
   const user = await DbUsers.findOne({ dni: req.user.dni });
+  const debts = await DbDebts.findOne({ dni: req.user.dni });
 
   DbAccounts.findOne(
     {
@@ -380,6 +382,7 @@ router.get("/api/user", isAuthenticated, async (req, res) => {
         email: req.user.email,
         incorporation: req.user.incorporation,
         generalLimit: info.generalLimit,
+        totalOtherDebt: debts.totalOtherDebt,
         saldo,
         spent,
         shouldSeeStatus: user.shouldSeeStatus,

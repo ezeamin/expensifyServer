@@ -18,24 +18,65 @@ router.get("/api/debts/:type", isAuthenticated, async (req, res) => {
 
   const document = await DbDebts.findOne({ dni });
 
-  const userDebts = document.userDebts.map((debtsTo) => {
-    debtsTo.debts = debtsTo.debts.map((debt) => {
-      debt.date = formatDate(debt.date, debt.tzOffset);
+  let userDebts = [];
+  let otherDebts = [];
 
-      return debt;
-    });
+  if (type === "user") {
+    userDebts = await Promise.all(
+      document.userDebts.map(async (debtsTo) => {
+        debtsTo = debtsTo.toObject();
 
-    return debtsTo;
-  });
-  const otherDebts = document.otherDebts.map((debtor) => {
-    debtor.debts = debtor.debts.map((debt) => {
-      debt.date = formatDate(debt.date, debt.tzOffset);
+        debtsTo.debts = await Promise.all(
+          debtsTo.debts.map(async (debt) => {
+            debt.date = formatDate(debt.date, debt.tzOffset);
 
-      return debt;
-    });
+            const accountsDoc = await DbAccounts.findOne({ dni });
+            const account = accountsDoc.accounts.find(
+              (acc) => acc.id === debt.originAccountId
+            );
 
-    return debtor;
-  });
+            debt.account = account.title;
+            delete debt.originAccountId;
+
+            return debt;
+          })
+        );
+
+        debtsTo.total = debtsTo.debts.reduce(
+          (debt, cur) => debt + cur.price,
+          0
+        );
+
+        return debtsTo;
+      })
+    );
+  } else {
+    otherDebts = await Promise.all(
+      document.otherDebts.map(async (debtor) => {
+        debtor = debtor.toObject();
+
+        debtor.debts = await Promise.all(
+          debtor.debts.map(async (debt) => {
+            debt.date = formatDate(debt.date, debt.tzOffset);
+
+            const accountsDoc = await DbAccounts.findOne({ dni });
+            const account = accountsDoc.accounts.find(
+              (acc) => acc.id === debt.originAccountId
+            );
+
+            debt.account = account.title;
+            delete debt.originAccountId;
+
+            return debt;
+          })
+        );
+
+        debtor.total = debtor.debts.reduce((debt, cur) => debt + cur.price, 0);
+
+        return debtor;
+      })
+    );
+  }
 
   if (type === "user") res.json(userDebts);
   else res.json(otherDebts);
@@ -301,13 +342,18 @@ router.put(
 
 // eliminar deuda (saldar?)
 router.delete(
-  "/api/debt/:type/:personId/:debtId",
+  "/api/debt/:type/:personId/:debtId/:action",
   isAuthenticated,
   (req, res) => {
     const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
     const type = req.params.type;
+    const personId = req.params.personId;
+    const debtId = req.params.debtId;
+    const action = req.params.action;
 
-    DbDebts.findOne({ dni }, (err, document) => {
+    const list = type === "user" ? "userDebts" : "otherDebts";
+
+    DbDebts.findOne({ dni }, async (err, document) => {
       if (err) {
         return res.status(401).json({
           err,
@@ -316,59 +362,41 @@ router.delete(
 
       let personIndex, debtIndex;
 
-      try {
-        if (type === "user") {
-          personIndex = document.userDebts
-            .map((x) => {
-              return x.id;
-            })
-            .indexOf(req.params.personId);
-          debtIndex = document.userDebts[personIndex].debts
-            .map((x) => {
-              return x.id;
-            })
-            .indexOf(req.params.debtId);
+      personIndex = document[list].findIndex((x) => x.id === personId);
+      debtIndex = document[list][personIndex].debts.findIndex(
+        (x) => x.id === debtId
+      );
 
-          if (personIndex === -1 || debtIndex === -1) {
-            return res
-              .status(401)
-              .json({ message: "No existe el deudor o el prestamo" });
-          }
-
-          document.userDebts[personIndex].debts.splice(debtIndex, 1);
-
-          if (document.userDebts[personIndex].debts.length === 0) {
-            document.userDebts.splice(personIndex, 1);
-          }
-        } else {
-          personIndex = document.otherDebts
-            .map((x) => {
-              return x.id;
-            })
-            .indexOf(req.params.personId);
-          debtIndex = document.otherDebts[personIndex].debts
-            .map((x) => {
-              return x.id;
-            })
-            .indexOf(req.params.debtId);
-
-          if (personIndex === -1 || debtIndex === -1) {
-            return res
-              .status(401)
-              .json({ message: "No existe el deudor o el prestamo" });
-          }
-
-          document.otherDebts[personIndex].debts.splice(debtIndex, 1);
-
-          if (document.otherDebts[personIndex].debts.length === 0) {
-            document.otherDebts.splice(personIndex, 1);
-          }
-        }
-      } catch (err) {
-        return res.status(401).json(err);
+      if (personIndex === -1 || debtIndex === -1) {
+        return res
+          .status(401)
+          .json({ message: "No existe el deudor o el prestamo" });
       }
 
-      //restar del total y agregar/quitar de cuenta
+      const debt = document[list][personIndex].debts[debtIndex];
+
+      document[list][personIndex].debts.splice(debtIndex, 1);
+
+      if (document[list][personIndex].debts.length === 0) {
+        document[list].splice(personIndex, 1);
+      }
+
+      if (type === "user") {
+        document.totalUserDebt -= debt.price;
+      } else {
+        document.totalOtherDebt -= debt.price;
+
+        if (action === "saldar") {
+          const accountsDoc = await DbAccounts.findOne({ dni });
+          const accountIndex = accountsDoc.accounts.findIndex(
+            (acc) => acc.id === debt.originAccountId
+          );
+
+          accountsDoc.accounts[accountIndex].balance += debt.price;
+
+          await accountsDoc.save();
+        }
+      }
 
       document.save((err) => {
         if (err) {
