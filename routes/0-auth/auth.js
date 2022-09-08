@@ -64,6 +64,27 @@ router.post("/api/signup", async (req, res) => {
 
       await initiateDbUsers(req.body.dni, req.body.limit);
 
+      const transporter = nodemailer.createTransport({
+        host: "smtp-mail.outlook.com",
+        auth: {
+          user: "expensify-arg@outlook.com",
+          pass: process.env.EMAIL_PASSWORD,
+        },
+        tls: {
+          rejectUnauthorized: false,
+          ciphers: "SSLv3",
+        },
+      });
+
+      const mailOptions = {
+        from: "expensify-arg@outlook.com",
+        to: req.body.email.trim,
+        subject: "Bienvenido a Expensify",
+        text: `Hola, ${user.name}!\n\nBienvenido a Expensify.\n\nAhora te podremos robar toda tu información muy tranquilos... :D\n\nSaludos,\nEquipo Expensify\n`,
+      };
+
+      transporter.sendMail(mailOptions);
+
       return res.sendStatus(200);
     } catch (error) {
       return res.status(500).json({
@@ -101,6 +122,9 @@ router.post("/api/signin", async (req, res) => {
   if (!user.comparePassword(req.body.password.trim(), user.password)) {
     return res.status(401).json({ message: "Contraseña incorrecta" });
   }
+
+  user.hasAskedForNewPassword = false;
+  await user.save();
 
   const data = user.toJSON();
   delete data.password;
@@ -180,14 +204,27 @@ router.post("/api/refreshToken", async (req, res) => {
   });
 });
 
-router.get("/api/email/:dni", async (req, res) => {
+router.put("/api/email/:dni", async (req, res) => {
   const dni = req.params.dni;
 
-  const user = await DbUsers.findOne({ dni: dni });
+  const user = await DbUsers.findOne({ dni });
 
   if (!user) {
     return res.status(401).json({
       message: "DNI no registrado",
+    });
+  }
+
+  // disguise mail as aa**bb@mail.com
+  const mail = user.email.split("@");
+  const encryptedMail = `${mail[0][0]}${mail[0][1]}**${
+    mail[0][mail[0].length - 2]
+  }${mail[0][mail[0].length - 1]}@${mail[1]}`;
+
+  if (user.hasAskedForNewPassword) {
+    const message = `Ya fue enviado un mail de recuperacion para esta cuenta. Revisa la casilla de ${encryptedMail}`;
+    return res.status(401).json({
+      message,
     });
   }
 
@@ -207,7 +244,7 @@ router.get("/api/email/:dni", async (req, res) => {
     from: "expensify-arg@outlook.com",
     to: user.email,
     subject: "Expensify - Recuperacion de contraseña",
-    text: `Hola, ${user.name}!\n\nPara recuperar tu contraseña, ingresa dentro de los 15 minutos siguientes a este link: https://expensify-arg.netlify.app/auth/recPassword/${user.recCode}\n\nSaludos,\nEquipo Expensify\n\nSi no pediste este cambio, puedes ignorar este correo.`,
+    text: `Hola, ${user.name}!\n\nPara recuperar tu contraseña, ingresa a este link: https://expensify-arg.netlify.app/auth/recPassword/${user.recCode}\n\nSaludos,\nEquipo Expensify\n\nSi no pediste este cambio, podés ignorar este correo.`,
   };
 
   transporter.sendMail(mailOptions, async (error) => {
@@ -220,7 +257,7 @@ router.get("/api/email/:dni", async (req, res) => {
       user.hasAskedForNewPassword = true;
 
       await user.save();
-      return res.sendStatus(200);
+      return res.status(200).json({ email: encryptedMail });
     }
   });
 });
@@ -231,7 +268,7 @@ router.get("/api/auth/recPassword/:recCode", async (req, res) => {
 
   const user = await DbUsers.findOne({ recCode });
 
-  if (!user) {
+  if (!user || !user?.hasAskedForNewPassword) {
     return res.sendStatus(401);
   }
 
