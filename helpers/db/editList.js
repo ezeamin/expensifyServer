@@ -22,7 +22,7 @@ const switchFunction = (type) => {
 const editList = async (type, dni, id, data, res) => {
   const { db, listName } = switchFunction(type);
 
-  if(data.new?.description) data.new.description = data.new.description.trim();
+  if (data.new?.description) data.new.description = data.new.description.trim();
 
   db.findOne(
     {
@@ -64,7 +64,9 @@ const editList = async (type, dni, id, data, res) => {
 
       if (type === "account") {
         info[listName][infoPosition].noBalance =
-          Number.parseFloat(data.noBalance) === 0;
+          Number.parseFloat(data?.balance) === 0 &&
+          data?.accountType !== "Debito" &&
+          data?.accountType !== "Efectivo";
       } else if (type === "category") {
         info[listName][infoPosition].noLimit =
           Number.parseFloat(data.limit) === 0;
