@@ -72,12 +72,12 @@ const resetAndUpdate = async (user) => {
     categories: categoriesDoc.categories,
   };
 
-  const yearDoc = old.periods.findIndex((period) => {
+  const yearDocIndex = old.periods.findIndex((period) => {
     return period.year === year;
   });
 
-  if (yearDoc !== -1) {
-    old.periods[yearDoc].push(newPeriod);
+  if (yearDocIndex !== -1) {
+    old.periods[yearDocIndex].periods.push(newPeriod);
   } else {
     old.periods.push({ year, periods: [newPeriod] });
   }
