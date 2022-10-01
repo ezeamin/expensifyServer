@@ -81,6 +81,11 @@ router.put("/api/account", isAuthenticated, async (req, res) => {
     return;
   }
 
+  const isNoBalance =
+    Number.parseFloat(req.body.balance) === 0 &&
+    req.body.accountType !== "Debito" &&
+    req.body.accountType !== "Efectivo";
+
   DbAccounts.findOneAndUpdate(
     { dni: process.env.NODE_ENV === "test" ? req.body.dni : req.user.dni },
     {
@@ -94,7 +99,7 @@ router.put("/api/account", isAuthenticated, async (req, res) => {
           balance: req.body.balance,
           spent: 0,
           description: req.body.description.trim(),
-          noBalance: Number.parseFloat(req.body.balance) === 0,
+          noBalance: isNoBalance,
         },
       },
     },
