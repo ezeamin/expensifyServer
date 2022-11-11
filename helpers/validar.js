@@ -15,7 +15,7 @@ const validar = (datos) => {
         }
         break;
       case "title":
-        if (valor.length > 20 || valor.length < 2) {
+        if (valor.length > 40 || valor.length < 2) {
           return false;
         }
         break;
