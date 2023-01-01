@@ -1,14 +1,14 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 
-const isAuthenticated = require("../../helpers/isAuthenticated");
+const isAuthenticated = require('../../helpers/isAuthenticated');
 
-const DbPeriod = require("../../models/period");
-const DbUsers = require("../../models/user");
-const transferOldData = require("../../helpers/db/transferOldData");
+const DbPeriod = require('../../models/period');
+const DbUsers = require('../../models/user');
+const transferOldData = require('../../helpers/db/transferOldData');
 
-router.get("/api/isNewMonth", isAuthenticated, (req, res) => {
-  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+router.get('/api/isNewMonth', isAuthenticated, (req, res) => {
+  const dni = process.env.NODE_ENV === 'test' ? '12345678' : req.user.dni;
 
   const date = new Date();
   const localTz = date.getTimezoneOffset();
@@ -31,8 +31,8 @@ router.get("/api/isNewMonth", isAuthenticated, (req, res) => {
   });
 });
 
-router.get("/api/periods/:year", isAuthenticated, async (req, res) => {
-  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+router.get('/api/periods/:year', isAuthenticated, async (req, res) => {
+  const dni = process.env.NODE_ENV === 'test' ? '12345678' : req.user.dni;
   const year = req.params.year;
 
   const periodos = await DbPeriod.findOne({ dni });
@@ -48,10 +48,10 @@ router.get("/api/periods/:year", isAuthenticated, async (req, res) => {
 });
 
 router.get(
-  "/api/periods/:year/monthNum/:id",
+  '/api/periods/:year/monthNum/:id',
   isAuthenticated,
   async (req, res) => {
-    const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+    const dni = process.env.NODE_ENV === 'test' ? '12345678' : req.user.dni;
     const year = req.params.year;
     const id = req.params.id;
 
@@ -64,14 +64,14 @@ router.get(
       (period) => period.year === Number(year)
     );
     const periodDoc = periodYearDoc.periods.find((period) => period.id === id);
-    const date = periodDoc.start;
+    const date = new Date(periodDoc.start);
 
     const localTz = date.getTimezoneOffset();
     if (180 !== localTz) {
       date.setMinutes(date.getMinutes() + 180 * -1);
     }
 
-    const month = date.getMonth();
+    const month = date.getUTCMonth();
 
     res.json({ month });
   }

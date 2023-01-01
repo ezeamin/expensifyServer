@@ -1,19 +1,19 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 
-const isAuthenticated = require("../../helpers/isAuthenticated");
+const isAuthenticated = require('../../helpers/isAuthenticated');
 
-const DbExpenses = require("../../models/expense");
-const DbIncomes = require("../../models/income");
-const DbCategories = require("../../models/category");
+const DbExpenses = require('../../models/expense');
+const DbIncomes = require('../../models/income');
+const DbCategories = require('../../models/category');
 // const DbAccounts = require("../../models/account");
-const DbOlds = require("../../models/period");
-const roundToNearestHour = require("../../helpers/roundToNearestHour");
-const getWeekDay = require("../../helpers/getWeekDay");
-const differenceInWeeks = require("../../helpers/differenceInWeeks");
+const DbOlds = require('../../models/period');
+const roundToNearestHour = require('../../helpers/roundToNearestHour');
+const getWeekDay = require('../../helpers/getWeekDay');
+const differenceInWeeks = require('../../helpers/differenceInWeeks');
 
-router.get("/api/charts/chartData", isAuthenticated, async (req, res) => {
-  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+router.get('/api/charts/chartData', isAuthenticated, async (req, res) => {
+  const dni = process.env.NODE_ENV === 'test' ? '12345678' : req.user.dni;
 
   const categoriesDoc = await DbCategories.findOne({ dni });
   const categoriesList = categoriesDoc.categories.map((category) => ({
@@ -24,8 +24,8 @@ router.get("/api/charts/chartData", isAuthenticated, async (req, res) => {
   res.status(200).json(categoriesList);
 });
 
-router.get("/api/charts/dayChart", isAuthenticated, async (req, res) => {
-  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+router.get('/api/charts/dayChart', isAuthenticated, async (req, res) => {
+  const dni = process.env.NODE_ENV === 'test' ? '12345678' : req.user.dni;
 
   const expDocument = await DbExpenses.findOne({ dni });
   const incDocument = await DbIncomes.findOne({ dni });
@@ -53,7 +53,7 @@ router.get("/api/charts/dayChart", isAuthenticated, async (req, res) => {
     //set to local tz
     date.setMinutes(date.getMinutes() - exp.tzOffset);
 
-    const day = date.getDate();
+    const day = date.getUTCDate();
     const value = list[day - 1].expenses;
 
     const total = value + exp.price;
@@ -67,7 +67,7 @@ router.get("/api/charts/dayChart", isAuthenticated, async (req, res) => {
     //set to local tz
     date.setMinutes(date.getMinutes() - inc.tzOffset);
 
-    const day = date.getDate();
+    const day = date.getUTCDate();
     const value = list[day - 1].incomes;
 
     const total = value + inc.price;
@@ -78,8 +78,8 @@ router.get("/api/charts/dayChart", isAuthenticated, async (req, res) => {
   res.json(list);
 });
 
-router.get("/api/charts/weekChart", isAuthenticated, async (req, res) => {
-  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+router.get('/api/charts/weekChart', isAuthenticated, async (req, res) => {
+  const dni = process.env.NODE_ENV === 'test' ? '12345678' : req.user.dni;
 
   const expDocument = await DbExpenses.findOne({ dni });
   let days = new Array(7).fill(undefined).map((el, day) => {
@@ -88,7 +88,7 @@ router.get("/api/charts/weekChart", isAuthenticated, async (req, res) => {
       // arithmetic progression that starts in 7
       let hour = 7 + 2 * i;
       if (hour > 23) hour = hour % 24;
-      hour = hour + "hs";
+      hour = hour + 'hs';
 
       const weekday = getWeekDay(day);
 
@@ -152,10 +152,10 @@ router.get("/api/charts/weekChart", isAuthenticated, async (req, res) => {
 });
 
 router.get(
-  "/api/charts/spentAndIncomeOldChart/:year",
+  '/api/charts/spentAndIncomeOldChart/:year',
   isAuthenticated,
   async (req, res) => {
-    const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+    const dni = process.env.NODE_ENV === 'test' ? '12345678' : req.user.dni;
     const year = req.params.year;
 
     const periodDocument = await DbOlds.findOne({ dni });
@@ -165,17 +165,51 @@ router.get(
     );
 
     const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+
+    if (yearDoc.year === currentYear) {
+      //create array with n elements, where n is the number of months
+      const list = new Array(currentMonth + 1)
+        .fill(undefined)
+        .map((_el, index) => ({
+          month: index,
+          spent: 0,
+          income: 0
+        }));
+
+      console.log(yearDoc.periods);
+      yearDoc.periods.forEach((period) => {
+        const month = Number(period.start.toISOString().split('-')[1]) - 1;
+
+        list.forEach((el) => {
+          if (el.month === month) {
+            el.spent = period.spent;
+            el.income = period.income;
+          }
+        });
+      });
+
+      const incomeDoc = await DbIncomes.findOne({ dni });
+      const expensesDoc = await DbExpenses.findOne({ dni });
+
+      const spent = expensesDoc.expenses.reduce((acc, el) => acc + el.price, 0);
+
+      list[currentMonth].spent = spent;
+      list[currentMonth].income = incomeDoc.totalIncome;
+
+      res.json(list);
+      return;
+    }
+
     //create array with n elements, where n is the number of months
-    const list = new Array(currentMonth + 1)
-      .fill(undefined)
-      .map((_el, index) => ({
-        month: index,
-        spent: 0,
-        income: 0,
-      }));
+    const list = new Array(12).fill(undefined).map((_el, index) => ({
+      month: index,
+      spent: 0,
+      income: 0,
+    }));
 
     yearDoc.periods.forEach((period) => {
-      const month = Number(period.start.toISOString().split("-")[1]) - 1;
+      const month = Number(period.start.toISOString().split('-')[1]) - 1;
 
       list.forEach((el) => {
         if (el.month === month) {
