@@ -219,14 +219,6 @@ router.get(
       });
     });
 
-    const incomeDoc = await DbIncomes.findOne({ dni });
-    const expensesDoc = await DbExpenses.findOne({ dni });
-
-    const spent = expensesDoc.expenses.reduce((acc, el) => acc + el.price, 0);
-
-    list[currentMonth].spent = spent;
-    list[currentMonth].income = incomeDoc.totalIncome;
-
     res.json(list);
   }
 );
