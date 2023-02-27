@@ -415,6 +415,7 @@ router.get("/api/user", isAuthenticated, async (req, res) => {
       });
 
       dollars = info.accounts.find((acc) => acc.accountType === "Caja de ahorros en dolares")?.balance || 0;
+      saldo -= dollars;
 
       const data = {
         name: req.user.name,

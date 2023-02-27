@@ -42,10 +42,13 @@ const resetAndUpdate = async (user) => {
     (acc, account) => acc + account.spent,
     0
   );
-  const balance = accountsDoc.accounts.reduce(
+  let balance = accountsDoc.accounts.reduce(
     (acc, account) => acc + account.balance,
     0
   );
+
+  let dollars = accountsDoc.accounts.find((acc) => acc.accountType === "Caja de ahorros en dolares")?.balance || 0;
+  balance -= dollars;
 
   let startDate = new Date(year, month, 1);
   let endDate = new Date(year, month + 1, 0);
