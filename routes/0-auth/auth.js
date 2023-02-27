@@ -386,6 +386,7 @@ router.get("/api/auth", isAuthenticated, (req, res) => {
 router.get("/api/user", isAuthenticated, async (req, res) => {
   let saldo = 0;
   let spent = 0;
+  let dollars = 0;
 
   const user = await DbUsers.findOne({ dni: req.user.dni });
   const debts = await DbDebts.findOne({ dni: req.user.dni });
@@ -413,6 +414,8 @@ router.get("/api/user", isAuthenticated, async (req, res) => {
         spent += acc.spent;
       });
 
+      dollars = info.accounts.find((acc) => acc.accountType === "Caja de ahorros en dolares")?.balance || 0;
+
       const data = {
         name: req.user.name,
         dni: req.user.dni,
@@ -421,6 +424,7 @@ router.get("/api/user", isAuthenticated, async (req, res) => {
         generalLimit: info.generalLimit,
         totalOtherDebt: debts.totalOtherDebt,
         saldo,
+        dollars,
         spent,
         shouldSeeStatus: user.shouldSeeStatus,
       };
