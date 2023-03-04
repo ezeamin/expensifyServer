@@ -28,20 +28,16 @@ router.get('/api/accounts/spentAndList', isAuthenticated, async (req, res) => {
   const accounts = await DbAccounts.findOne({ dni });
   const spent = Number.parseFloat(
     accounts.accounts.reduce((acc, cur) => {
-      if (acc.accountType === 'Caja de ahorros en dolares') return;
+      if (cur?.accountType === 'Caja de ahorros en dolares') return acc;
       return acc + cur.spent;
     }, 0)
   );
 
-  const accountsList = accounts.accounts.map((acc) => {
-    if (acc.accountType === 'Caja de ahorros en dolares') return;
-
-    return {
-      title: acc.title,
-      spent: acc.spent,
-      mean: Math.round((Number.parseFloat(acc.spent) * 100) / spent || 0),
-    };
-  });
+  const accountsList = accounts.accounts.map((acc) => ({
+    title: acc.title,
+    spent: acc.spent,
+    mean: Math.round((Number.parseFloat(acc.spent) * 100) / spent || 0),
+  }));
 
   accountsList.sort((a, b) => b.spent - a.spent);
   res.json({ spent, accountsList } || { spent: 0, accountsList: [] });
