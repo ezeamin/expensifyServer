@@ -387,6 +387,7 @@ router.get("/api/user", isAuthenticated, async (req, res) => {
   let saldo = 0;
   let spent = 0;
   let dollars = 0;
+  let plazoFijo = 0;
 
   const user = await DbUsers.findOne({ dni: req.user.dni });
   const debts = await DbDebts.findOne({ dni: req.user.dni });
@@ -416,7 +417,10 @@ router.get("/api/user", isAuthenticated, async (req, res) => {
 
       dollars = info.accounts.find((acc) => acc.accountType === "Caja de ahorros en dolares")?.balance || 0;
       saldo -= dollars;
-
+      
+      plazoFijo = info.accounts.find((acc) => acc.title === "Plazo fijo")?.balance || 0;
+      saldo -= plazoFijo;
+      
       const data = {
         name: req.user.name,
         dni: req.user.dni,
