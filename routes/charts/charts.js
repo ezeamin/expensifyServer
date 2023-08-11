@@ -160,9 +160,17 @@ router.get(
 
     const periodDocument = await DbOlds.findOne({ dni });
 
+    if (!periodDocument) {
+      return res.json({});
+    }
+
     const yearDoc = periodDocument.periods.find(
       (period) => period.year === Number(year)
     );
+
+    if (!yearDoc) {
+      return res.json({});
+    }
 
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
@@ -174,7 +182,7 @@ router.get(
         .map((_el, index) => ({
           month: index,
           spent: 0,
-          income: 0
+          income: 0,
         }));
 
       console.log(yearDoc.periods);
