@@ -1,35 +1,35 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 
-const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
+const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 
-const validar = require("../../helpers/validar");
-const isAuthenticated = require("../../helpers/isAuthenticated");
-const initiateDbUsers = require("../../helpers/db/initiate");
+const validar = require('../../helpers/validar');
+const isAuthenticated = require('../../helpers/isAuthenticated');
+const initiateDbUsers = require('../../helpers/db/initiate');
 
-const DbUsers = require("../../models/user");
-const DbDebts = require("../../models/debt");
-const DbTokens = require("../../models/token");
-const DbAccounts = require("../../models/account");
-const { generateAccessToken } = require("../../helpers/tokens");
-const generarCodigo = require("../../helpers/generarCodigo");
+const DbUsers = require('../../models/user');
+const DbDebts = require('../../models/debt');
+const DbTokens = require('../../models/token');
+const DbAccounts = require('../../models/account');
+const { generateAccessToken } = require('../../helpers/tokens');
+const generarCodigo = require('../../helpers/generarCodigo');
 
-router.post("/api/signup", async (req, res) => {
+router.post('/api/signup', async (req, res) => {
   if (!validar(req.body)) {
     res.status(401).json({
       ok: false,
-      message: "Datos inválidos",
+      message: 'Datos inválidos',
     });
     return;
   }
 
   const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.split(" ")[1];
+  const token = authHeader && authHeader.split(' ')[1];
 
   if (token && token.length >= 10) {
     return res.status(401).json({
-      message: "Usuario ya autenticado",
+      message: 'Usuario ya autenticado',
     });
   }
 
@@ -38,11 +38,11 @@ router.post("/api/signup", async (req, res) => {
 
   if (exists) {
     return res.status(401).json({
-      message: "Email en uso",
+      message: 'Email en uso',
     });
   } else if (existsDni) {
     return res.status(401).json({
-      message: "DNI en uso",
+      message: 'DNI en uso',
     });
   } else {
     try {
@@ -64,42 +64,46 @@ router.post("/api/signup", async (req, res) => {
 
       await initiateDbUsers(req.body.dni, req.body.limit);
 
-      const transporter = nodemailer.createTransport({
-        host: "smtp-mail.outlook.com",
-        auth: {
-          user: "expensify-arg@outlook.com",
-          pass: process.env.EMAIL_PASSWORD,
-        },
-        tls: {
-          rejectUnauthorized: false,
-          ciphers: "SSLv3",
-        },
-      });
+      try {
+        const transporter = nodemailer.createTransport({
+          host: 'smtp-mail.outlook.com',
+          auth: {
+            user: 'expensify-arg@outlook.com',
+            pass: process.env.EMAIL_PASSWORD,
+          },
+          tls: {
+            rejectUnauthorized: false,
+            ciphers: 'SSLv3',
+          },
+        });
 
-      const mailOptions = {
-        from: "expensify-arg@outlook.com",
-        to: req.body.email.trim,
-        subject: "Bienvenido a Expensify",
-        text: `Hola, ${user.name}!\n\nBienvenido a Expensify.\n\nAhora te podremos robar toda tu información muy tranquilos... :D\n\nSaludos,\nEquipo Expensify\n`,
-      };
+        const mailOptions = {
+          from: 'expensify-arg@outlook.com',
+          to: req.body.email.trim(),
+          subject: 'Bienvenido a Expensify',
+          text: `Hola, ${user.name}!\n\nBienvenido a Expensify.\n\nAhora te podremos robar toda tu información muy tranquilos... :D\n\nSaludos,\nEquipo Expensify\n`,
+        };
 
-      transporter.sendMail(mailOptions);
+        transporter.sendMail(mailOptions);
+      } catch (error) {
+        console.log('CANT_SEND_MAIL', error);
+      }
 
       return res.sendStatus(200);
     } catch (error) {
       return res.status(500).json({
-        message: "Error al registrar",
+        message: 'Error al registrar',
         extra: error,
       });
     }
   }
 });
 
-router.post("/api/signin", async (req, res) => {
+router.post('/api/signin', async (req, res) => {
   if (!validar(req.body)) {
     res.status(401).json({
       ok: false,
-      message: "Datos inválidos",
+      message: 'Datos inválidos',
     });
     return;
   }
@@ -117,10 +121,10 @@ router.post("/api/signin", async (req, res) => {
   const user = await DbUsers.findOne({ dni: req.body.dni });
 
   if (!user) {
-    return res.status(401).json({ message: "DNI no registrado" });
+    return res.status(401).json({ message: 'DNI no registrado' });
   }
   if (!user.comparePassword(req.body.password.trim(), user.password)) {
-    return res.status(401).json({ message: "Contraseña incorrecta" });
+    return res.status(401).json({ message: 'Contraseña incorrecta' });
   }
 
   user.hasAskedForNewPassword = false;
@@ -145,7 +149,7 @@ router.post("/api/signin", async (req, res) => {
     await doc.save();
     return res
       .status(401)
-      .json({ message: "Usuario ya autenticado", accessToken, refreshToken });
+      .json({ message: 'Usuario ya autenticado', accessToken, refreshToken });
   }
 
   try {
@@ -159,7 +163,7 @@ router.post("/api/signin", async (req, res) => {
   } catch (error) {
     return res
       .status(500)
-      .json({ message: "Error de servidor, intenta mas tarde" });
+      .json({ message: 'Error de servidor, intenta mas tarde' });
   }
 
   return res.status(200).json({
@@ -168,7 +172,7 @@ router.post("/api/signin", async (req, res) => {
   });
 });
 
-router.post("/api/refreshToken", async (req, res) => {
+router.post('/api/refreshToken', async (req, res) => {
   const refreshToken = req.body.token;
   if (!refreshToken) {
     return res.sendStatus(401);
@@ -204,19 +208,19 @@ router.post("/api/refreshToken", async (req, res) => {
   });
 });
 
-router.put("/api/email/:dni", async (req, res) => {
+router.put('/api/email/:dni', async (req, res) => {
   const dni = req.params.dni;
 
   const user = await DbUsers.findOne({ dni });
 
   if (!user) {
     return res.status(401).json({
-      message: "DNI no registrado",
+      message: 'DNI no registrado',
     });
   }
 
   // disguise mail as aa**bb@mail.com
-  const mail = user.email.split("@");
+  const mail = user.email.split('@');
   const encryptedMail = `${mail[0][0]}${mail[0][1]}**${
     mail[0][mail[0].length - 2]
   }${mail[0][mail[0].length - 1]}@${mail[1]}`;
@@ -229,28 +233,28 @@ router.put("/api/email/:dni", async (req, res) => {
   }
 
   const transporter = nodemailer.createTransport({
-    host: "smtp-mail.outlook.com",
+    host: 'smtp-mail.outlook.com',
     auth: {
-      user: "expensify-arg@outlook.com",
+      user: 'expensify-arg@outlook.com',
       pass: process.env.EMAIL_PASSWORD,
     },
     tls: {
       rejectUnauthorized: false,
-      ciphers: "SSLv3",
+      ciphers: 'SSLv3',
     },
   });
 
   const mailOptions = {
-    from: "expensify-arg@outlook.com",
+    from: 'expensify-arg@outlook.com',
     to: user.email,
-    subject: "Expensify - Recuperacion de contraseña",
+    subject: 'Expensify - Recuperacion de contraseña',
     text: `Hola, ${user.name}!\n\nPara recuperar tu contraseña, ingresa a este link: https://expensify-arg.netlify.app/auth/recPassword/${user.recCode}\n\nSaludos,\nEquipo Expensify\n\nSi no pediste este cambio, podés ignorar este correo.`,
   };
 
   transporter.sendMail(mailOptions, async (error) => {
     if (error) {
       return res.status(500).json({
-        message: "Error al enviar correo",
+        message: 'Error al enviar correo',
         extra: error,
       });
     } else {
@@ -263,7 +267,7 @@ router.put("/api/email/:dni", async (req, res) => {
 });
 
 // check for existing recCode
-router.get("/api/auth/recPassword/:recCode", async (req, res) => {
+router.get('/api/auth/recPassword/:recCode', async (req, res) => {
   const recCode = req.params.recCode;
 
   const user = await DbUsers.findOne({ recCode });
@@ -275,11 +279,11 @@ router.get("/api/auth/recPassword/:recCode", async (req, res) => {
   return res.sendStatus(200);
 });
 
-router.put("/api/auth/recPassword", async (req, res) => {
+router.put('/api/auth/recPassword', async (req, res) => {
   if (!req.body?.password || !req.body?.recCode) {
     return res.status(401).json({
       ok: false,
-      message: "Datos inválidos",
+      message: 'Datos inválidos',
     });
   }
 
@@ -287,13 +291,13 @@ router.put("/api/auth/recPassword", async (req, res) => {
 
   if (!user) {
     return res.status(401).json({
-      message: "Código de recuperacion inválido",
+      message: 'Código de recuperacion inválido',
     });
   }
 
   if (!user.hasAskedForNewPassword) {
     return res.status(401).json({
-      message: "No se pidió cambio de contraseña",
+      message: 'No se pidió cambio de contraseña',
     });
   }
 
@@ -307,15 +311,15 @@ router.put("/api/auth/recPassword", async (req, res) => {
 });
 
 router.put(
-  "/api/auth/recPasswordFromLoggedAccount",
+  '/api/auth/recPasswordFromLoggedAccount',
   isAuthenticated,
   async (req, res) => {
-    const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+    const dni = process.env.NODE_ENV === 'test' ? '12345678' : req.user.dni;
 
     if (!req.body?.password) {
       return res.status(401).json({
         ok: false,
-        message: "Datos inválidos",
+        message: 'Datos inválidos',
       });
     }
 
@@ -335,7 +339,7 @@ router.put(
   }
 );
 
-router.delete("/api/logout", (req, res) => {
+router.delete('/api/logout', (req, res) => {
   let token = req.headers.refresh;
 
   if (token === null) {
@@ -351,16 +355,16 @@ router.delete("/api/logout", (req, res) => {
   });
 });
 
-router.get("/api/ping", (req, res) => {
+router.get('/api/ping', (req, res) => {
   return res.sendStatus(200);
 });
 
-router.put("/auth/changeAskForNewPassword", async (req, res) => {
+router.put('/auth/changeAskForNewPassword', async (req, res) => {
   const user = await DbUsers.findOne({ dni: req.body.dni });
 
   if (!user) {
     return res.status(401).json({
-      message: "DNI no registrado",
+      message: 'DNI no registrado',
     });
   }
 
@@ -371,7 +375,7 @@ router.put("/auth/changeAskForNewPassword", async (req, res) => {
   return res.sendStatus(200);
 });
 
-router.get("/api/auth", isAuthenticated, (req, res) => {
+router.get('/api/auth', isAuthenticated, (req, res) => {
   res.status(200).json({
     user: {
       name: req.user.name,
@@ -383,7 +387,7 @@ router.get("/api/auth", isAuthenticated, (req, res) => {
   });
 });
 
-router.get("/api/user", isAuthenticated, async (req, res) => {
+router.get('/api/user', isAuthenticated, async (req, res) => {
   let saldo = 0;
   let spent = 0;
   let dollars = 0;
@@ -398,14 +402,14 @@ router.get("/api/user", isAuthenticated, async (req, res) => {
     (err, info) => {
       if (err) {
         return res.status(500).json({
-          message: "Error al obtener saldo",
+          message: 'Error al obtener saldo',
           extra: err,
         });
       }
 
       if (info.length === 0) {
         return res.status(500).json({
-          message: "Error al obtener saldo",
+          message: 'Error al obtener saldo',
         });
       }
 
@@ -414,7 +418,10 @@ router.get("/api/user", isAuthenticated, async (req, res) => {
         spent += acc.spent;
       });
 
-      dollars = info.accounts.find((acc) => acc.accountType === "Caja de ahorros en dolares")?.balance || 0;
+      dollars =
+        info.accounts.find(
+          (acc) => acc.accountType === 'Caja de ahorros en dolares'
+        )?.balance || 0;
       saldo -= dollars;
 
       const data = {
@@ -435,15 +442,15 @@ router.get("/api/user", isAuthenticated, async (req, res) => {
   );
 });
 
-router.put("/api/user", isAuthenticated, async (req, res) => {
-  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+router.put('/api/user', isAuthenticated, async (req, res) => {
+  const dni = process.env.NODE_ENV === 'test' ? '12345678' : req.user.dni;
   const newContent = req.body;
 
   const user = await DbUsers.findOne({ dni });
 
   if (!user) {
     return res.status(401).json({
-      message: "DNI no registrado",
+      message: 'DNI no registrado',
     });
   }
 
@@ -454,19 +461,19 @@ router.put("/api/user", isAuthenticated, async (req, res) => {
   await user.save();
 
   return res.status(200).json({
-    message: "Usuario actualizado",
+    message: 'Usuario actualizado',
   });
 });
 
-router.put("/api/user/seeStatus", isAuthenticated, async (req, res) => {
-  const dni = process.env.NODE_ENV === "test" ? "12345678" : req.user.dni;
+router.put('/api/user/seeStatus', isAuthenticated, async (req, res) => {
+  const dni = process.env.NODE_ENV === 'test' ? '12345678' : req.user.dni;
   const { shouldSeeStatus } = req.body;
 
   const user = await DbUsers.findOne({ dni });
 
   if (!user) {
     return res.status(401).json({
-      message: "DNI no registrado",
+      message: 'DNI no registrado',
     });
   }
 
@@ -475,7 +482,7 @@ router.put("/api/user/seeStatus", isAuthenticated, async (req, res) => {
   await user.save();
 
   return res.status(200).json({
-    message: "Usuario actualizado",
+    message: 'Usuario actualizado',
   });
 });
 
