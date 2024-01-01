@@ -1,19 +1,19 @@
-const DbUsers = require("../../models/user");
-const DbAccounts = require("../../models/account");
-const DbExpenses = require("../../models/expense");
-const DbIncomes = require("../../models/income");
-const DbTransfers = require("../../models/transfer");
+const DbUsers = require('../../models/user');
+const DbAccounts = require('../../models/account');
+const DbExpenses = require('../../models/expense');
+const DbIncomes = require('../../models/income');
+const DbTransfers = require('../../models/transfer');
 // const DbDebts = require("../../models/debt");
 // const DbPayments = require("../../models/payment");
-const DbPeriods = require("../../models/period");
-const DbCategories = require("../../models/category");
+const DbPeriods = require('../../models/period');
+const DbCategories = require('../../models/category');
 
-const resetSpent = require("./resetSpent");
-const resetTables = require("./resetTables");
-const resetPayments = require("./resetPayments");
-const daysInMonth = require("../daysInMonth");
-const roundToTwo = require("../roundToTwo");
-const generarCodigo = require("../generarCodigo");
+const resetSpent = require('./resetSpent');
+const resetTables = require('./resetTables');
+const resetPayments = require('./resetPayments');
+const daysInMonth = require('../daysInMonth');
+const roundToTwo = require('../roundToTwo');
+const generarCodigo = require('../generarCodigo');
 
 const resetAndUpdate = async (user) => {
   const dni = user.dni;
@@ -28,7 +28,7 @@ const resetAndUpdate = async (user) => {
 
   const old = await DbPeriods.findOne({ dni });
   if (!old) {
-    console.log("No hay periodos");
+    console.log('No hay periodos');
     return;
   }
 
@@ -47,7 +47,10 @@ const resetAndUpdate = async (user) => {
     0
   );
 
-  let dollars = accountsDoc.accounts.find((acc) => acc.accountType === "Caja de ahorros en dolares")?.balance || 0;
+  let dollars =
+    accountsDoc.accounts.find(
+      (acc) => acc.accountType === 'Caja de ahorros en dolares'
+    )?.balance || 0;
   balance -= dollars;
 
   let startDate = new Date(year, month, 1);
@@ -91,12 +94,12 @@ const resetAndUpdate = async (user) => {
       console.log(err);
     }
 
-    resetSpent("account", dni);
-    resetSpent("category", dni);
+    resetSpent('account', dni);
+    resetSpent('category', dni);
 
     resetTables(dni, expensesDoc, incomesDoc, transfersDoc);
     resetPayments(dni);
-    console.log("Periodo actualizado");
+    console.log('Periodo actualizado');
   });
 };
 
@@ -104,7 +107,7 @@ const transferOldData = async () => {
   const dt = new Date();
   const month = dt.getMonth();
 
-  const user = await DbUsers.findOne({ dni: "43706393" });
+  const user = await DbUsers.findOne({ dni: '43706393' });
 
   //currentPeriod: 6 - month: 7 (starts at 0)
   if (user.currentPeriod !== month) {
@@ -118,6 +121,20 @@ const transferOldData = async () => {
 
       if (user.currentPeriod === 12) {
         user.currentPeriod = 0;
+        console.log('NEW YEAR!! 🎆');
+
+        // Create new entry in db for the new year
+        DbPeriods.findOne({ dni }, async (err, doc) => {
+          if (err) {
+            console.log(err);
+          } else {
+            doc.periods.push({
+              year: new Date().getFullYear(),
+              periods: [],
+            });
+            await doc.save();
+          }
+        });
       }
 
       await user.save();
