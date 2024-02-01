@@ -24,6 +24,7 @@ router.get('/api/isNewMonth', isAuthenticated, (req, res) => {
       if (user.currentPeriod !== date.getMonth()) {
         res.json({ isNewMonth: true });
         transferOldData();
+        console.log("Tara!")
       } else {
         res.json({ isNewMonth: false });
       }

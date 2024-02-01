@@ -109,7 +109,7 @@ const transferOldData = async () => {
 
   const user = await DbUsers.findOne({ dni: '43706393' });
 
-  //currentPeriod: 6 - month: 7 (starts at 0)
+  // currentPeriod: 6 - month: 7 (starts at 0)
   if (user.currentPeriod !== month) {
     // make all changes
     const users = await DbUsers.find();
