@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const DbTokens = require("../models/token");
 
 const generateAccessToken = (user) => {
-  return jwt.sign(user, process.env.ACCESS_SECRET_KEY, { expiresIn: "15h" }); //cambiar!!!!!!!!
+  return jwt.sign(user, process.env.ACCESS_SECRET_KEY, { expiresIn: "80h" }); //cambiar!!!!!!!!
 };
 
 const refreshToken = (req, res) => {

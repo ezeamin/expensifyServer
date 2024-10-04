@@ -54,7 +54,7 @@ router.get('/api/charts/dayChart', isAuthenticated, async (req, res) => {
     date.setMinutes(date.getMinutes() - exp.tzOffset);
 
     const day = date.getUTCDate();
-    const value = list[day - 1].expenses;
+    const value = list[day - 1]?.expenses;
 
     const total = value + exp.price;
     list[day - 1].expenses = total;
